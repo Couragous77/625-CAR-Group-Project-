@@ -12,7 +12,7 @@ A dockerized development environment for the **Budget CAR** app (FastAPI backend
 
 ```bash
 # Clone repository
-git clone <YOUR_REPO_URL>.git
+git clone https://github.com/Couragous77/625-CAR-Group-Project-.git
 cd budget-car
 
 # Copy environment
