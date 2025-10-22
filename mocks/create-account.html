@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Budget CAR — Create Account</title>
+    <style>
+        :root {
+            --bg: #f5f9f6;
+            --panel: #fff;
+            --ink: #1e2a23;
+            --muted: #6b7f74;
+            --accent: #3baa6b;
+            --accent-2: #4fa2d9;
+            --accent-3: #69c08e;
+            --warn: #e58a3b;
+            --radius: 16px;
+            --hairline: 1px solid rgba(0, 0, 0, .06);
+            --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+            color: var(--ink);
+            background: radial-gradient(900px 460px at 10% -10%, #eaf6ef 0%, transparent 60%), var(--bg);
+            display: grid;
+            place-items: center;
+            padding: 1.25rem;
+        }
+
+        .auth-shell {
+            width: 100%;
+            max-width: 960px;
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
+            align-items: stretch;
+        }
+
+        @media (min-width: 960px) {
+            .auth-shell {
+                grid-template-columns: 1.2fr 1fr;
+            }
+        }
+
+        .promo {
+            background: linear-gradient(135deg, #e7f3ea 0%, #f5fbf7 100%);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            display: grid;
+            gap: 1rem;
+            align-content: center;
+        }
+
+        .promo h1 {
+            margin: 0;
+            font-size: 1.6rem;
+        }
+
+        .promo p {
+            margin: .25rem 0 0;
+            color: var(--muted);
+        }
+
+        .panel {
+            background: var(--panel);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: .7rem;
+            margin-bottom: .25rem;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: #fff;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+            border: 1px solid rgba(0, 0, 0, .04);
+        }
+
+        .logo svg {
+            width: 34px;
+            height: 34px;
+        }
+
+        .brand-name {
+            font-weight: 800;
+            letter-spacing: .2px;
+            font-size: 1.1rem;
+        }
+
+        form {
+            display: grid;
+            gap: .9rem;
+        }
+
+        .grid {
+            display: grid;
+            gap: .9rem;
+            grid-template-columns: 1fr;
+        }
+
+        @media(min-width:560px) {
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .field {
+            display: grid;
+            gap: .35rem;
+        }
+
+        label {
+            font-weight: 700;
+            font-size: .95rem;
+        }
+
+        input,
+        select {
+            /* width:100%;*/
+            padding: .7rem .9rem;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, .12);
+            background: #fff;
+            color: var(--ink);
+        }
+
+        .toggle-eye {
+            position: absolute;
+            right: .6rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .control {
+            position: relative;
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: .9rem;
+        }
+
+        .error {
+            color: #b04a2f;
+            background: #fdebe5;
+            border: 1px solid #f6c6b5;
+            padding: .6rem .7rem;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .btn {
+            appearance: none;
+            border: 0;
+            border-radius: 12px;
+            padding: .7rem 1rem;
+            font-weight: 800;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(59, 170, 107, .22);
+        }
+
+        .btn.secondary {
+            background: #fff;
+            color: var(--accent);
+            border: 1px solid rgba(0, 0, 0, .12);
+            box-shadow: none;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: space-between;
+            gap: .5rem;
+            font-size: .95rem;
+        }
+
+        .footer-links a {
+            color: var(--accent-2);
+            text-decoration: none;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-shell">
+        <!-- Left: Brand / benefits -->
+        <section class="promo" aria-label="Welcome to Budget CAR">
+            <div class="brand">
+                <div class="logo" aria-hidden="true">
+                    <!-- Inline SVG logo -->
+                    <svg viewBox="0 0 80 80" role="img" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="mintGrad" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#3baa6b" />
+                                <stop offset="1" stop-color="#69c08e" />
+                            </linearGradient>
+                            <radialGradient id="coinGrad" cx="35%" cy="35%" r="70%">
+                                <stop offset="0%" stop-color="#fff4cc" />
+                                <stop offset="45%" stop-color="#ffd76a" />
+                                <stop offset="100%" stop-color="#e7b84b" />
+                            </radialGradient>
+                        </defs>
+                        <rect x="0" y="0" width="80" height="80" rx="14" fill="url(#mintGrad)" opacity=".18" />
+                        <circle cx="56" cy="26" r="16" fill="url(#coinGrad)" stroke="rgba(0,0,0,.08)"
+                            stroke-width="1" />
+                        <text x="56" y="30" text-anchor="middle" font-weight="900" font-size="12"
+                            fill="#5a3b00">$</text>
+                        <g transform="translate(10,36)">
+                            <path d="M8 16h36c2 0 3-1 3-3v-4c0-.7-.2-1.3-.6-1.9l-3.4-5.2C41.5 0.8 40.3 0 39 0H20c-1.3 0-2.5.8-3 2.0l-2 5.0H8
+                       c-2.2 0-4 1.8-4 4v2c0 1.7 1.3 3 3 3z" fill="#3baa6b" />
+                            <circle cx="16" cy="16" r="4" fill="#1f2b25" />
+                            <circle cx="36" cy="16" r="4" fill="#1f2b25" />
+                        </g>
+                    </svg>
+                </div>
+                <span class="brand-name">Budget CAR</span>
+            </div>
+            <h1>Create your account</h1>
+            <p>Set weekly goals, get alerts, and visualize your savings. It’s budgeting made for students.</p>
+        </section>
+
+        <!-- Right: Create Account form -->
+        <section class="panel" aria-labelledby="createTitle">
+            <h2 id="createTitle" style="margin-top:0">Create account</h2>
+            <div id="formError" class="error" role="alert">Please fix the highlighted fields.</div>
+
+            <form id="createForm" novalidate>
+                <div class="grid">
+                    <div class="field">
+                        <label for="first">First name</label>
+                        <input id="first" name="first" type="text" autocomplete="given-name" required />
+                    </div>
+                    <div class="field">
+                        <label for="last">Last name</label>
+                        <input id="last" name="last" type="text" autocomplete="family-name" required />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="email">School email</label>
+                    <input id="email" name="email" type="email" autocomplete="email" placeholder="you@school.edu"
+                        required />
+                </div>
+
+                <div class="grid">
+                    <div class="field">
+                        <label for="password">Password</label>
+                        <div class="control">
+                            <input id="password" name="password" type="password" autocomplete="new-password"
+                                minlength="8" required />
+                            <button type="button" class="toggle-eye" aria-label="Show or hide password" onclick="
+                const p = document.getElementById('password');
+                p.type = (p.type === 'password') ? 'text' : 'password';
+                this.textContent = (p.type === 'password') ? 'Show' : 'Hide';
+              ">Show</button>
+                        </div>
+                        <div class="hint">Use at least 8 characters</div>
+                    </div>
+
+                    <div class="field">
+                        <label for="confirm">Confirm password</label>
+                        <div class="control">
+                            <input id="confirm" name="confirm" type="password" autocomplete="new-password" minlength="8"
+                                required />
+                            <button type="button" class="toggle-eye" aria-label="Show or hide password" onclick="
+                const p = document.getElementById('confirm');
+                p.type = (p.type === 'password') ? 'text' : 'password';
+                this.textContent = (p.type === 'password') ? 'Show' : 'Hide';
+              ">Show</button>
+                        </div>
+                        <div class="hint">Passwords must match</div>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="field">
+                        <label for="status">Student status</label>
+                        <select id="status" name="status" required>
+                            <option value="" disabled selected>Select status</option>
+                            <option>Undergraduate</option>
+                            <option>Graduate</option>
+                            <option>Part-time</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="ref">Referral (optional)</label>
+                        <input id="ref" name="ref" type="text" placeholder="Friend code or club" />
+                    </div>
+                </div>
+
+                <label class="hint">
+                    <input id="tos" type="checkbox" required />
+                    I agree to the <a href="#" class="hint" style="text-decoration:underline">Terms</a> and <a href="#"
+                        class="hint" style="text-decoration:underline">Privacy Policy</a>.
+                </label>
+
+                <button class="btn" type="submit">Create account</button>
+
+                <div class="footer-links" style="margin-top:.6rem">
+                    <span class="hint">Already have an account?</span>
+                    <a href="login.html">Log in</a>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <script>
+        // Simple client-side validation & demo submit
+        document.getElementById('createForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const first = document.getElementById('first');
+            const last = document.getElementById('last');
+            const email = document.getElementById('email');
+            const pass = document.getElementById('password');
+            const conf = document.getElementById('confirm');
+            const status = document.getElementById('status');
+            const tos = document.getElementById('tos');
+            const error = document.getElementById('formError');
+
+            let ok = true;
+            const mark = (el, good) => {
+                el.style.borderColor = good ? 'rgba(0,0,0,.12)' : '#e58a3b';
+            };
+
+            ok &= !!first.value.trim(); mark(first, !!first.value.trim());
+            ok &= !!last.value.trim(); mark(last, !!last.value.trim());
+            ok &= email.checkValidity(); mark(email, email.checkValidity());
+            ok &= pass.value.length >= 8; mark(pass, pass.value.length >= 8);
+            ok &= conf.value === pass.value && conf.value.length >= 8; mark(conf, conf.value === pass.value && conf.value.length >= 8);
+            ok &= !!status.value; mark(status, !!status.value);
+            ok &= tos.checked;
+
+            if (!ok) {
+                error.style.display = 'block';
+                return;
+            }
+            error.style.display = 'none';
+
+            // TODO: POST to FastAPI /auth/register endpoint with JSON or FormData
+            // fetch('/api/auth/register', { method:'POST', body: new FormData(e.target) })
+            alert('Account created! (demo)');
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+
+</html>

@@ -27,6 +27,17 @@ seed: ## load demo data
 we-shell: ## shell into web
 	docker compose exec web sh
 
+we-install: ## install frontend dependencies (including react-router-dom)
+	docker compose exec web npm install
+	docker compose exec web npm install react-router-dom
+
+we-install-full: ## install all recommended frontend packages
+	docker compose exec web npm install
+	docker compose exec web npm install react-router-dom @tanstack/react-query axios zustand
+
+we-dev: ## run frontend dev server (if not already running)
+	docker compose exec web npm run dev
+
 fmt: ## placeholder for formatters
 	@echo "Add black/ruff/eslint here"
 

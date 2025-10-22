@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Budget CAR — Track Income</title>
+    <style>
+        :root {
+            --bg: #f5f9f6;
+            --panel: #fff;
+            --ink: #1e2a23;
+            --muted: #6b7f74;
+            --accent: #3baa6b;
+            --accent-2: #4fa2d9;
+            --accent-3: #69c08e;
+            --good: #2f8f5b;
+            --radius: 16px;
+            --hairline: 1px solid rgba(0, 0, 0, .06);
+            --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+            color: var(--ink);
+            background: radial-gradient(900px 460px at 10% -10%, #eaf6ef 0%, transparent 60%), var(--bg);
+        }
+
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: #cdf2c6;
+            border-bottom: var(--hairline);
+        }
+
+        .header-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: .8rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            font-weight: 800;
+        }
+
+        .logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: #fff;
+            display: grid;
+            place-items: center;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+            border: 1px solid rgba(0, 0, 0, .04);
+        }
+
+        .brand-name {
+            letter-spacing: .2px;
+        }
+
+        .top-actions a {
+            text-decoration: none;
+            font-weight: 700;
+            color: var(--accent);
+            padding: .4rem .7rem;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 0, 0, .1);
+            background: #fff;
+        }
+
+        .logo svg {
+            width: 34px;
+            height: 34px;
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: 1rem auto 3rem;
+            padding: 0 1rem;
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
+        }
+
+        @media(min-width:980px) {
+            .wrap {
+                grid-template-columns: 1.4fr .9fr;
+            }
+        }
+
+        .card {
+            background: var(--panel);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.1rem;
+        }
+
+        h1 {
+            margin: .2rem 0 .6rem;
+            font-size: 1.4rem;
+        }
+
+        h2 {
+            margin: .2rem 0 .6rem;
+            font-size: 1rem;
+        }
+
+        form {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
+        }
+
+        @media(min-width:560px) {
+            .grid.cols-2 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .field {
+            display: grid;
+            gap: .35rem;
+        }
+
+        label {
+            font-weight: 700;
+            font-size: .95rem;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: .7rem .9rem;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, .12);
+            background: #fff;
+            color: var(--ink);
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .inline {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: .9rem;
+        }
+
+        .error {
+            color: #b04a2f;
+            background: #fdebe5;
+            border: 1px solid #f6c6b5;
+            padding: .6rem .7rem;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .btn {
+            appearance: none;
+            border: 0;
+            border-radius: 12px;
+            padding: .7rem 1rem;
+            font-weight: 800;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(59, 170, 107, .22);
+        }
+
+        .btn.ghost {
+            background: #fff;
+            color: var(--accent);
+            border: 1px solid rgba(0, 0, 0, .12);
+            box-shadow: none;
+        }
+
+        .summary .stat {
+            display: flex;
+            justify-content: space-between;
+            padding: .4rem 0;
+            border-bottom: var(--hairline);
+        }
+
+        .summary .good {
+            color: var(--good);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: .5rem;
+            border-bottom: 1px dashed rgba(0, 0, 0, .08);
+            font-size: .95rem;
+            text-align: left;
+        }
+
+        th {
+            color: var(--muted);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="brand">
+                <div class="logo" aria-label="Budget CAR logo">
+                    <svg viewBox="0 0 80 80" role="img" aria-labelledby="logoTitle logoDesc">
+                        <title id="logoTitle">Budget CAR logo</title>
+                        <desc id="logoDesc">Green car with a gold coin dollar sign.</desc>
+
+                        <defs>
+                            <linearGradient id="mintGrad" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#3baa6b" />
+                                <stop offset="1" stop-color="#69c08e" />
+                            </linearGradient>
+                            <radialGradient id="coinGrad" cx="35%" cy="35%" r="70%">
+                                <stop offset="0%" stop-color="#fff4cc" />
+                                <stop offset="45%" stop-color="#ffd76a" />
+                                <stop offset="100%" stop-color="#e7b84b" />
+                            </radialGradient>
+                        </defs>
+
+                        <!-- soft mint tile -->
+                        <rect x="0" y="0" width="80" height="80" rx="14" fill="url(#mintGrad)" opacity=".18" />
+
+                        <!-- coin -->
+                        <circle cx="56" cy="26" r="16" fill="url(#coinGrad)" stroke="rgba(0,0,0,.08)"
+                            stroke-width="1" />
+                        <text x="56" y="30" text-anchor="middle"
+                            font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif" font-weight="900"
+                            font-size="12" fill="#5a3b00">$</text>
+
+                        <!-- car -->
+                        <g transform="translate(10,36)">
+                            <path d="M8 16h36c2 0 3-1 3-3v-4c0-.7-.2-1.3-.6-1.9l-3.4-5.2C41.5 0.8 40.3 0 39 0H20c-1.3 0-2.5.8-3 2.0l-2 5.0H8
+               c-2.2 0-4 1.8-4 4v2c0 1.7 1.3 3 3 3z" fill="#3baa6b" />
+                            <circle cx="16" cy="16" r="4" fill="#1f2b25" />
+                            <circle cx="36" cy="16" r="4" fill="#1f2b25" />
+                            <circle cx="16" cy="16" r="2" fill="#b9c9c1" />
+                            <circle cx="36" cy="16" r="2" fill="#b9c9c1" />
+                        </g>
+                    </svg>
+                </div>
+                <span class="brand-name">Budget CAR</span>
+            </div>
+            <nav class="top-actions" aria-label="Main">
+                <a href="index.html">Dashboard</a>
+                <a href="track-expense.html">Track Expense</a>
+                <a href="login.html">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="wrap">
+        <!-- Left: Income form -->
+        <section class="card" aria-labelledby="incTitle">
+            <h1 id="incTitle">Track Income</h1>
+            <p class="hint">Record income sources such as scholarships, part-time work, or stipends. You can mark
+                entries as
+                recurring.</p>
+
+            <div id="incError" class="error" role="alert">Please fix the highlighted fields.</div>
+            <form id="incomeForm" novalidate>
+                <div class="grid cols-2">
+                    <div class="field">
+                        <label for="amount">Amount (USD)</label>
+                        <input id="amount" name="amount" type="number" inputmode="decimal" step="0.01" min="0.01"
+                            placeholder="e.g., 1200.00" required />
+                    </div>
+                    <div class="field">
+                        <label for="date">Date</label>
+                        <input id="date" name="date" type="date" required />
+                    </div>
+                </div>
+
+                <div class="grid cols-2">
+                    <div class="field">
+                        <label for="source">Source</label>
+                        <select id="source" name="source" required>
+                            <option value="" disabled selected>Select source</option>
+                            <option>Scholarship</option>
+                            <option>Grant</option>
+                            <option>Part-time Job</option>
+                            <option>Gig/Freelance</option>
+                            <option>Family Support</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="deposit">Deposit To</label>
+                        <select id="deposit" name="deposit" required>
+                            <option value="" disabled selected>Select account</option>
+                            <option>Checking</option>
+                            <option>Savings</option>
+                            <option>Cash</option>
+                            <option>Campus Card</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid cols-2">
+                    <div class="field">
+                        <label for="reference">Reference / Check # (optional)</label>
+                        <input id="reference" name="reference" type="text" placeholder="e.g., paystub #1234" />
+                    </div>
+                    <div class="field">
+                        <label>Recurring</label>
+                        <div class="inline">
+                            <input id="recurring" name="recurring" type="checkbox" />
+                            <label for="recurring" class="hint">Repeat monthly</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="notes">Notes (optional)</label>
+                    <textarea id="notes" name="notes"
+                        placeholder="Add details such as hours worked or pay period…"></textarea>
+                </div>
+
+                <div class="inline" style="gap:.6rem">
+                    <button class="btn" type="submit">Save Income</button>
+                    <button class="btn ghost" type="reset">Clear</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Right: Summary -->
+        <aside class="card summary" aria-labelledby="sumTitle">
+            <h2 id="sumTitle">This Month</h2>
+            <div class="stat"><span>Total Income</span><strong id="sumIncome" class="good">$1,800.00</strong></div>
+            <div class="stat"><span>Expected (recurring)</span><strong>$2,100.00</strong></div>
+
+            <h2 style="margin-top:1rem">Recent Income</h2>
+            <table aria-label="Recent income">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Source</th>
+                        <th>Account</th>
+                        <th style="text-align:right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="recentBody">
+                    <tr>
+                        <td>2025-09-08</td>
+                        <td>Part-time Job</td>
+                        <td>Checking</td>
+                        <td style="text-align:right;color:var(--good)">+$300.00</td>
+                    </tr>
+                    <tr>
+                        <td>2025-09-01</td>
+                        <td>Scholarship</td>
+                        <td>Savings</td>
+                        <td style="text-align:right;color:var(--good)">+$1,200.00</td>
+                    </tr>
+                    <tr>
+                        <td>2025-08-28</td>
+                        <td>Gig/Freelance</td>
+                        <td>Checking</td>
+                        <td style="text-align:right;color:var(--good)">+$300.00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </aside>
+    </main>
+
+    <script>
+        // Simple validation + demo submit
+        const form = document.getElementById('incomeForm');
+        const error = document.getElementById('incError');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const amount = document.getElementById('amount');
+            const date = document.getElementById('date');
+            const source = document.getElementById('source');
+            const deposit = document.getElementById('deposit');
+
+            const ok = (+amount.value > 0) && !!date.value && !!source.value && !!deposit.value;
+            [amount, date, source, deposit].forEach(el => el.style.borderColor = ok ? 'rgba(0,0,0,.12)' : '#e58a3b');
+
+            if (!ok) { error.style.display = 'block'; return; }
+            error.style.display = 'none';
+
+            // In a real app, POST JSON to your FastAPI endpoint:
+            // const payload = Object.fromEntries(new FormData(form).entries());
+            // const res = await fetch('/api/income', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+            // const json = await res.json();
+            alert('Income saved! (demo)');
+            form.reset();
+        });
+    </script>
+</body>
+
+</html>

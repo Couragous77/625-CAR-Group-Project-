@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Budget CAR — Login</title>
+    <style>
+        :root {
+            --bg: #f5f9f6;
+            --panel: #fff;
+            --ink: #1e2a23;
+            --muted: #6b7f74;
+            --accent: #3baa6b;
+            --accent-2: #4fa2d9;
+            --accent-3: #69c08e;
+            --warn: #e58a3b;
+            --radius: 16px;
+            --hairline: 1px solid rgba(0, 0, 0, .06);
+            --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+            color: var(--ink);
+            background: radial-gradient(900px 460px at 10% -10%, #eaf6ef 0%, transparent 60%), var(--bg);
+            display: grid;
+            place-items: center;
+            padding: 1.25rem;
+        }
+
+        .auth-shell {
+            width: 100%;
+            max-width: 960px;
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
+            align-items: stretch;
+        }
+
+        @media (min-width: 960px) {
+            .auth-shell {
+                grid-template-columns: 1.2fr 1fr;
+            }
+        }
+
+        .promo {
+            background: linear-gradient(135deg, #e7f3ea 0%, #f5fbf7 100%);
+            border-radius: var(--radius);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            display: grid;
+            gap: 1rem;
+            align-content: center;
+        }
+
+        .promo h1 {
+            margin: 0;
+            font-size: 1.6rem;
+        }
+
+        .promo p {
+            margin: .25rem 0 0;
+            color: var(--muted);
+        }
+
+        .promo .perk {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+        }
+
+        .perk i {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: inline-block;
+        }
+
+        .panel {
+            background: var(--panel);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+        }
+
+        /* Brand header */
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: .7rem;
+            margin-bottom: .75rem;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: #fff;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+            border: 1px solid rgba(0, 0, 0, .04);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Simple SVG icon (car + coin) */
+        .logo svg {
+            width: 34px;
+            height: 34px;
+        }
+
+        .brand-name {
+            font-weight: 800;
+            letter-spacing: .2px;
+            font-size: 1.1rem;
+        }
+
+        /* Form */
+        form {
+            display: grid;
+            gap: .9rem;
+        }
+
+        .field {
+            display: grid;
+            gap: .35rem;
+        }
+
+        label {
+            font-weight: 700;
+            font-size: .95rem;
+        }
+
+        .control {
+            position: relative;
+        }
+
+        input[type="email"],
+        input[type="password"],
+        input[type="text"] {
+            width: 100%;
+            padding: .7rem .9rem;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, .12);
+            background: #fff;
+            color: var(--ink);
+        }
+
+        .toggle-eye {
+            position: absolute;
+            right: .6rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: .9rem;
+        }
+
+        .btn {
+            appearance: none;
+            border: 0;
+            border-radius: 12px;
+            padding: .7rem 1rem;
+            font-weight: 800;
+            background: var(--accent);
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(59, 170, 107, .22);
+        }
+
+        .btn.secondary {
+            background: #fff;
+            color: var(--accent);
+            border: 1px solid rgba(0, 0, 0, .12);
+            box-shadow: none;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: space-between;
+            gap: .5rem;
+            font-size: .95rem;
+        }
+
+        .footer-links a {
+            color: var(--accent-2);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .error {
+            color: #b04a2f;
+            background: #fdebe5;
+            border: 1px solid #f6c6b5;
+            padding: .6rem .7rem;
+            border-radius: 10px;
+            display: none;
+        }
+
+        /* Accessibility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .brand-name {
+                color: #e9f3ee;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-shell">
+        <!-- Left promo / value prop -->
+        <section class="promo" aria-label="Why Budget CAR">
+            <div class="brand">
+                <div class="logo" aria-hidden="true">
+                    <!-- Inline SVG logo -->
+                    <svg viewBox="0 0 80 80" role="img" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="mintGrad" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#3baa6b" />
+                                <stop offset="1" stop-color="#69c08e" />
+                            </linearGradient>
+                            <radialGradient id="coinGrad" cx="35%" cy="35%" r="70%">
+                                <stop offset="0%" stop-color="#fff4cc" />
+                                <stop offset="45%" stop-color="#ffd76a" />
+                                <stop offset="100%" stop-color="#e7b84b" />
+                            </radialGradient>
+                        </defs>
+                        <rect x="0" y="0" width="80" height="80" rx="14" fill="url(#mintGrad)" opacity=".18" />
+                        <circle cx="56" cy="26" r="16" fill="url(#coinGrad)" stroke="rgba(0,0,0,.08)"
+                            stroke-width="1" />
+                        <text x="56" y="30" text-anchor="middle" font-weight="900" font-size="12"
+                            fill="#5a3b00">$</text>
+                        <g transform="translate(10,36)">
+                            <path d="M8 16h36c2 0 3-1 3-3v-4c0-.7-.2-1.3-.6-1.9l-3.4-5.2C41.5 0.8 40.3 0 39 0H20c-1.3 0-2.5.8-3 2.0l-2 5.0H8
+                       c-2.2 0-4 1.8-4 4v2c0 1.7 1.3 3 3 3z" fill="#3baa6b" />
+                            <circle cx="16" cy="16" r="4" fill="#1f2b25" />
+                            <circle cx="36" cy="16" r="4" fill="#1f2b25" />
+                        </g>
+                    </svg>
+                </div>
+                <span class="brand-name">Budget CAR</span>
+            </div>
+            <h1>Smart, simple budgeting for students</h1>
+            <p>Envelope-style budgeting, receipt upload, alerts, and fun progress visuals. Stay on track without the
+                stress.
+            </p>
+            <div class="perk"><i></i><span>Student-first categories (Textbooks, Tuition, Meal Plan)</span></div>
+            <div class="perk"><i></i><span>Weekly goals + piggy bank progress</span></div>
+            <div class="perk"><i></i><span>Export to Excel and optional bank linking</span></div>
+        </section>
+
+        <!-- Right: Login form -->
+        <section class="panel" aria-labelledby="loginTitle">
+            <h2 id="loginTitle" style="margin-top:0">Log in</h2>
+            <div id="formError" class="error" role="alert">Please enter a valid email and password.</div>
+            <form id="loginForm" novalidate>
+                <div class="field">
+                    <label for="email">Email</label>
+                    <div class="control">
+                        <input id="email" name="email" type="email" autocomplete="username" required
+                            placeholder="you@school.edu" />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="password">Password</label>
+                    <div class="control">
+                        <input id="password" name="password" type="password" autocomplete="current-password" required
+                            minlength="6" />
+                        <button type="button" class="toggle-eye" aria-label="Show or hide password" onclick="
+              const p = document.getElementById('password');
+              p.type = (p.type === 'password') ? 'text' : 'password';
+              this.textContent = (p.type === 'password') ? 'Show' : 'Hide';
+            ">Show</button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <label class="hint"><input type="checkbox" id="remember" /> Remember me</label>
+                    <a class="hint" href="#">Forgot password?</a>
+                </div>
+
+                <button class="btn" type="submit">Log in</button>
+
+                <div class="footer-links" style="margin-top:.6rem">
+                    <span class="hint">New here?</span>
+                    <a href="create-account.html">Create an account</a>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <script>
+        // Simple client-side validation (replace with real API call)
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email');
+            const pass = document.getElementById('password');
+            const error = document.getElementById('formError');
+            const valid = email.checkValidity() && pass.value.trim().length >= 6;
+
+            if (!valid) {
+                error.style.display = 'block';
+                return;
+            }
+            error.style.display = 'none';
+            // TODO: POST to your FastAPI /auth/login endpoint
+            // fetch('/api/auth/login', { method:'POST', body: new FormData(e.target) })
+            alert('Logged in! (demo)');
+            window.location.href = 'index.html'; // your dashboard
+        });
+    </script>
+</body>
+
+</html>
