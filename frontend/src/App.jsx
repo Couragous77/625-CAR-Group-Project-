@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
+import ScrollToTop from './components/ScrollToTop';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -8,6 +9,11 @@ import Dashboard from './pages/Dashboard';
 import TrackExpense from './pages/TrackExpense';
 import TrackIncome from './pages/TrackIncome';
 import Profile from './pages/Profile';
+import NotFound from './pages/NotFound';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import About from './pages/About';
+import Help from './pages/Help';
 import './styles/common.css';
 
 // Protected Route wrapper
@@ -43,6 +49,12 @@ function AppRoutes() {
           </PublicRoute>
         }
       />
+
+      {/* Info Pages - available to everyone, with layout */}
+      <Route path="/about" element={<Layout><About /></Layout>} />
+      <Route path="/help" element={<Layout><Help /></Layout>} />
+      <Route path="/terms" element={<Layout><Terms /></Layout>} />
+      <Route path="/privacy" element={<Layout><Privacy /></Layout>} />
 
       {/* Protected Routes - with Layout (header + footer) */}
       <Route
@@ -86,8 +98,8 @@ function AppRoutes() {
         }
       />
 
-      {/* Catch-all redirect */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* 404 Not Found - catch all unknown routes */}
+      <Route path="*" element={<Layout><NotFound /></Layout>} />
     </Routes>
   );
 }
@@ -96,6 +108,7 @@ export default function App() {
   return (
     <AuthProvider>
       <Router>
+        <ScrollToTop />
         <AppRoutes />
       </Router>
     </AuthProvider>

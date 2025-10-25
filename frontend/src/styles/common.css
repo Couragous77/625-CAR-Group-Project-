@@ -48,7 +48,9 @@
     box-sizing: border-box;
 }
 
-html,
+html {
+    scroll-behavior: smooth;
+}
 body {
     height: 100%;
     margin: 0;
@@ -1296,6 +1298,12 @@ th {
     color: var(--muted);
 }
 
+.footer-links {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
 .footer-link {
     color: var(--accent);
     text-decoration: none;
@@ -1313,4 +1321,475 @@ th {
         flex-direction: column;
         text-align: center;
     }
+
+    .footer-links {
+        justify-content: center;
+    }
 }
+
+/* ========================================
+   404 NOT FOUND PAGE
+   ======================================== */
+.not-found-container {
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+    padding: 2rem;
+}
+
+.not-found-content {
+    background: var(--panel);
+    border-radius: var(--radius);
+    padding: 3rem 2rem;
+    box-shadow: var(--shadow);
+}
+
+.not-found-title {
+    font-size: 6rem;
+    font-weight: 900;
+    color: var(--accent);
+    margin: 0;
+    line-height: 1;
+}
+
+.not-found-subtitle {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 1rem 0;
+}
+
+.not-found-text {
+    font-size: 1rem;
+    color: var(--muted);
+    margin: 1rem 0 2rem;
+    line-height: 1.6;
+}
+
+.not-found-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.not-found-links {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.not-found-links a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.not-found-links a:hover {
+    color: var(--accent-dark);
+    text-decoration: underline;
+}
+
+.not-found-help {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: var(--hairline);
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.not-found-help a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.not-found-help a:hover {
+    text-decoration: underline;
+}
+
+/* ========================================
+   CONTENT PAGES (Terms, Privacy, About, Help)
+   ======================================== */
+.content-page {
+    min-height: 100vh;
+    background: var(--bg);
+    padding: 2rem 1.5rem 3rem;
+}
+
+.content-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: var(--panel);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.content-header {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+    color: white;
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+}
+
+.content-header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 800;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    color: #5ca770;
+}
+
+.content-subtitle {
+    margin: 0.75rem 0 0;
+    font-size: 1rem;
+    opacity: 0.95;
+    font-weight: 500;
+}
+
+.content-body {
+    padding: 2.5rem;
+}
+
+.content-body section {
+    margin-bottom: 2.5rem;
+}
+
+.content-body section:last-child {
+    margin-bottom: 0;
+}
+
+.content-body h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--accent);
+}
+
+.content-body h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 1.5rem 0 0.75rem;
+}
+
+.content-body p {
+    line-height: 1.7;
+    color: var(--text);
+    margin: 0 0 1rem;
+}
+
+.content-body ul,
+.content-body ol {
+    line-height: 1.7;
+    color: var(--text);
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+}
+
+.content-body li {
+    margin-bottom: 0.5rem;
+}
+
+.content-body li strong {
+    color: var(--ink);
+    font-weight: 600;
+}
+
+.content-body a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.content-body a:hover {
+    color: var(--accent-dark);
+    text-decoration: underline;
+}
+
+.content-footer {
+    background: rgba(0, 0, 0, 0.02);
+    border-top: var(--hairline);
+    padding: 2rem 2.5rem;
+    margin-top: 2rem;
+}
+
+.content-footer p {
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.content-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* ========================================
+   ABOUT PAGE SPECIFIC
+   ======================================== */
+.about-logo {
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.about-logo .logo-car-svg {
+    width: 80px;
+    height: 80px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.feature-item {
+    background: rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.feature-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.feature-item h3 {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+    color: var(--ink);
+}
+
+.feature-item p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text);
+}
+
+.about-tagline {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+/* ========================================
+   HELP PAGE SPECIFIC
+   ======================================== */
+.help-intro {
+    color: var(--muted);
+    font-size: 1rem;
+    margin-bottom: 2rem;
+}
+
+.faq-container {
+    margin-top: 1.5rem;
+}
+
+.faq-item {
+    background: rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+}
+
+.faq-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.faq-question {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 1.25rem 1.5rem;
+    text-align: left;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    transition: background-color 0.2s;
+}
+
+.faq-question:hover {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.faq-icon {
+    flex-shrink: 0;
+    transition: transform 0.3s;
+    color: var(--accent);
+}
+
+.faq-item.open .faq-icon {
+    transform: rotate(180deg);
+}
+
+.faq-answer {
+    padding: 0 1.5rem 1.5rem;
+    color: var(--text);
+    line-height: 1.7;
+    animation: slideDown 0.3s ease-out;
+}
+
+.faq-answer p {
+    margin: 0 0 1rem;
+}
+
+.faq-answer p:last-child {
+    margin-bottom: 0;
+}
+
+.faq-answer ul,
+.faq-answer ol {
+    margin: 0.75rem 0;
+}
+
+.faq-answer li {
+    margin-bottom: 0.5rem;
+}
+
+.help-tips {
+    background: rgba(var(--accent-rgb), 0.05);
+    border: 2px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 2rem;
+    margin-top: 3rem;
+}
+
+.help-tips h2 {
+    border-bottom: none;
+    margin-bottom: 1.5rem;
+}
+
+.tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.tip-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s;
+}
+
+.tip-card:hover {
+    transform: translateY(-4px);
+}
+
+.tip-icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.tip-card h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+    color: var(--ink);
+}
+
+.tip-card p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--text);
+}
+
+.help-contact {
+    margin-bottom: 2rem;
+}
+
+.help-contact h3 {
+    margin: 0 0 0.75rem;
+    font-size: 1.25rem;
+    color: var(--ink);
+}
+
+.help-contact p {
+    margin: 0;
+    color: var(--text);
+    line-height: 1.6;
+}
+
+/* ========================================
+   RESPONSIVE CONTENT PAGES
+   ======================================== */
+@media (max-width: 768px) {
+    .content-page {
+        padding: 1rem 0.75rem 2rem;
+    }
+
+    .content-header {
+        padding: 2rem 1.5rem 1.5rem;
+    }
+
+    .content-header h1 {
+        font-size: 2rem;
+    }
+
+    .content-body {
+        padding: 2rem 1.5rem;
+    }
+
+    .content-body h2 {
+        font-size: 1.5rem;
+    }
+
+    .content-footer {
+        padding: 1.5rem;
+    }
+
+    .content-actions {
+        flex-direction: column;
+    }
+
+    .content-actions .btn {
+        width: 100%;
+    }
+
+    .not-found-title {
+        font-size: 4rem;
+    }
+
+    .not-found-subtitle {
+        font-size: 1.5rem;
+    }
+
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tips-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
