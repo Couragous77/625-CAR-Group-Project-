@@ -303,6 +303,7 @@ p {
 .top-actions {
     display: flex;
     gap: 0.5rem;
+    align-items: center;
 }
 
 .top-actions a {
@@ -313,10 +314,245 @@ p {
     border-radius: 10px;
     border: 1px solid rgba(0, 0, 0, .1);
     background: #fff;
+    transition: all 0.2s;
 }
 
 .top-actions a:hover {
     background: rgba(255, 255, 255, 0.8);
+}
+
+.top-actions a.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+/* Hamburger Menu Button */
+.hamburger-menu {
+    display: none;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 28px;
+    height: 24px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 10;
+}
+
+.hamburger-menu span {
+    width: 28px;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+.hamburger-menu:hover span {
+    background: var(--accent-dark);
+}
+
+/* Notification Button */
+.notification-dropdown {
+    position: relative;
+}
+
+.notification-button {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, .1);
+    background: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    color: var(--accent);
+}
+
+.notification-button:hover {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.notification-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+}
+
+/* Notification Panel */
+.notification-panel {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    width: 320px;
+    max-width: 90vw;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, .1);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    z-index: 1000;
+    animation: slideDown 0.2s ease;
+}
+
+.notification-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(0, 0, 0, .08);
+}
+
+.notification-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.notification-content {
+    padding: 1.5rem 1.25rem;
+}
+
+.coming-soon-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.75rem;
+}
+
+.coming-soon-message svg {
+    color: var(--accent);
+    opacity: 0.6;
+}
+
+.coming-soon-message h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.coming-soon-message p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+/* Mobile Right Actions */
+.mobile-right-actions {
+    display: none;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* Mobile Menu Overlay */
+.mobile-menu-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+}
+
+/* Mobile Menu Drawer */
+.mobile-menu {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    background: #fff;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+    padding: 5rem 0 2rem;
+    overflow-y: auto;
+    animation: slideInLeft 0.3s ease;
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+.mobile-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    text-decoration: none;
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.mobile-menu-item:hover {
+    background: var(--brand-100);
+    color: var(--accent);
+}
+
+.mobile-menu-item.active {
+    background: var(--brand-100);
+    color: var(--accent);
+    border-left-color: var(--accent);
+}
+
+.mobile-menu-item svg {
+    flex-shrink: 0;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 780px) {
+    .hamburger-menu {
+        display: flex;
+    }
+
+    .desktop-nav {
+        display: none !important;
+    }
+
+    .mobile-right-actions {
+        display: flex;
+    }
+
+    .mobile-menu-overlay {
+        display: block;
+    }
+
+    .mobile-menu {
+        display: block;
+    }
+
+    .brand-name {
+        display: none;
+    }
+
+    .header-inner {
+        padding: 0.6rem 1rem;
+    }
 }
 
 /* Profile Dropdown */
