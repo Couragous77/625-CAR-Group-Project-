@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import Logo from '../components/Logo';
-import '../styles/common.css';
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -31,8 +32,13 @@ export default function Login() {
       //   body: JSON.stringify(formData)
       // });
 
-      // For now, simulate successful login
-      console.log('Logging in with:', formData);
+      // For now, use mock authentication
+      login({
+        email: formData.email,
+        firstName: 'Budget',
+        lastName: 'User',
+        avatar: null
+      });
 
       // Navigate to dashboard
       navigate('/dashboard');
@@ -50,12 +56,7 @@ export default function Login() {
   };
 
   return (
-    <div style={{
-      display: 'grid',
-      placeItems: 'center',
-      minHeight: '100vh',
-      padding: '1.25rem'
-    }}>
+    <div className="page-center">
       <div className="auth-shell">
         {/* Left promo / value prop */}
         <section className="promo" aria-label="Why Budget CAR">
@@ -153,7 +154,7 @@ export default function Login() {
 
             <div className="footer-links">
               <span className="hint">New here?</span>
-              <Link to="/signup">Create an account</Link>
+              <Link to="/register">Create an account</Link>
             </div>
           </form>
         </section>

@@ -1,46 +1,103 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Layout from './components/Layout';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
-// import Signup from './pages/Signup';
-// import Dashboard from './pages/Dashboard';
-// import TrackExpense from './pages/TrackExpense';
-// import TrackIncome from './pages/TrackIncome';
-// import Profile from './pages/Profile';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import TrackExpense from './pages/TrackExpense';
+import TrackIncome from './pages/TrackIncome';
+import Profile from './pages/Profile';
 import './styles/common.css';
 
-export default function App() {
-  // TODO: Add authentication state management (e.g., Context API, Redux, or Zustand)
-  const isAuthenticated = false; // Replace with actual auth state
+// Protected Route wrapper
+function ProtectedRoute({ children }) {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
+}
 
+// Public Route wrapper (redirect if already authenticated)
+function PublicRoute({ children }) {
+  const { isAuthenticated } = useAuth();
+  return !isAuthenticated ? children : <Navigate to="/dashboard" replace />;
+}
+
+function AppRoutes() {
   return (
-    <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        {/* <Route path="/signup" element={<Signup />} /> */}
-        
-        {/* Protected Routes - Uncomment as you build them */}
-        {/* <Route 
-          path="/dashboard" 
-          element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} 
-        />
-        <Route 
-          path="/track-expense" 
-          element={isAuthenticated ? <TrackExpense /> : <Navigate to="/login" />} 
-        />
-        <Route 
-          path="/track-income" 
-          element={isAuthenticated ? <TrackIncome /> : <Navigate to="/login" />} 
-        />
-        <Route 
-          path="/profile" 
-          element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} 
-        /> */}
+    <Routes>
+      {/* Public Routes - no layout */}
+      <Route path="/" element={<Landing />} />
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <PublicRoute>
+            <Register />
+          </PublicRoute>
+        }
+      />
 
-        {/* Catch-all redirect */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </Router>
+      {/* Protected Routes - with Layout (header + footer) */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Dashboard />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/track-expense"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <TrackExpense />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/track-income"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <TrackIncome />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Profile />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Catch-all redirect */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppRoutes />
+      </Router>
+    </AuthProvider>
   );
 }

@@ -23,13 +23,13 @@ export default function Logo({ className = "" }) {
 
         {/* Coin behind car */}
         <circle cx="56" cy="26" r="16" fill="url(#coinGrad)" stroke="rgba(0,0,0,.08)" strokeWidth="1" />
-        <text 
-          x="56" 
-          y="30" 
+        <text
+          x="56"
+          y="30"
           textAnchor="middle"
-          fontFamily="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" 
+          fontFamily="system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
           fontWeight="900"
-          fontSize="12" 
+          fontSize="12"
           fill="#5a3b00"
         >
           $
@@ -37,9 +37,9 @@ export default function Logo({ className = "" }) {
 
         {/* Car body */}
         <g transform="translate(10,36)">
-          <path 
-            d="M8 16h36c2 0 3-1 3-3v-4c0-.7-.2-1.3-.6-1.9l-3.4-5.2C41.5 0.8 40.3 0 39 0H20c-1.3 0-2.5.8-3 2.0l-2 5.0H8 c-2.2 0-4 1.8-4 4v2c0 1.7 1.3 3 3 3z" 
-            fill="#3baa6b" 
+          <path
+            d="M8 16h36c2 0 3-1 3-3v-4c0-.7-.2-1.3-.6-1.9l-3.4-5.2C41.5 0.8 40.3 0 39 0H20c-1.3 0-2.5.8-3 2.0l-2 5.0H8 c-2.2 0-4 1.8-4 4v2c0 1.7 1.3 3 3 3z"
+            fill="#3baa6b"
           />
           {/* Wheels */}
           <circle cx="16" cy="16" r="4" fill="#1f2b25" />
@@ -49,13 +49,13 @@ export default function Logo({ className = "" }) {
         </g>
 
         {/* CAR letters */}
-        <text 
-          x="26" 
-          y="53" 
+        <text
+          x="26"
+          y="53"
           fontFamily="system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
-          fontWeight="900" 
-          fontSize="11" 
-          fill="#0f3b25" 
+          fontWeight="900"
+          fontSize="11"
+          fill="#0f3b25"
           opacity=".9"
         >
           CAR
