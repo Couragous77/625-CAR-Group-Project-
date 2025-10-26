@@ -9,8 +9,8 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
-from app.db import Base
-from app import models  # populate metadata
+from app.db import Base  # noqa: E402
+from app import models  # noqa: E402, F401 - populate metadata
 
 config = context.config
 

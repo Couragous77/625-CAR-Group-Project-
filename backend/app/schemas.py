@@ -14,7 +14,10 @@ class UserOut(BaseModel):
     first_name: Optional[str]
     last_name: Optional[str]
     created_at: datetime
-    class Config: from_attributes = True
+
+    class Config:
+        from_attributes = True
+
 
 class CategoryCreate(BaseModel):
     name: str
@@ -24,7 +27,10 @@ class CategoryOut(BaseModel):
     id: int
     name: str
     type: str
-    class Config: from_attributes = True
+
+    class Config:
+        from_attributes = True
+
 
 class ExpenseCreate(BaseModel):
     category_id: Optional[int] = None
@@ -44,7 +50,10 @@ class ExpenseOut(BaseModel):
     payment_method: Optional[str]
     tags: Optional[str]
     notes: Optional[str]
-    class Config: from_attributes = True
+
+    class Config:
+        from_attributes = True
+
 
 class IncomeCreate(BaseModel):
     category_id: Optional[int] = None
@@ -66,4 +75,6 @@ class IncomeOut(BaseModel):
     reference: Optional[str]
     notes: Optional[str]
     is_recurring: bool
-    class Config: from_attributes = True
+
+    class Config:
+        from_attributes = True
