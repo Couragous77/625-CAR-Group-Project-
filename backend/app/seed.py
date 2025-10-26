@@ -1,9 +1,12 @@
 import os
 from decimal import Decimal
+
 from passlib.hash import bcrypt
 from sqlalchemy.orm import Session
-from .db import SessionLocal, engine, Base
+
 from . import models
+from .db import Base, SessionLocal, engine
+
 
 def seed(db: Session):
     email = os.getenv("SEED_USER_EMAIL", "student@school.edu")

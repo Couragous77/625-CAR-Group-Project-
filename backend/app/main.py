@@ -1,6 +1,7 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import os
 
 app = FastAPI(title="Budget CAR API")
 
@@ -16,6 +17,7 @@ app.add_middleware(
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
 
 # from app.routers import auth, expenses, income
 # app.include_router(auth.router, prefix="/auth", tags=["auth"])

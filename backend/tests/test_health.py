@@ -20,7 +20,7 @@ def test_basic_math():
 
 class TestHealthCheck:
     """Health check tests for API availability."""
-    
+
     def test_api_exists(self):
         """Test that we can import the main app."""
         try:
@@ -28,7 +28,7 @@ class TestHealthCheck:
             assert app is not None
         except ImportError:
             pytest.skip("FastAPI app not available in test environment")
-    
+
     def test_models_exist(self):
         """Test that we can import database models."""
         try:
@@ -36,7 +36,7 @@ class TestHealthCheck:
             assert models is not None
         except ImportError:
             pytest.skip("Models not available in test environment")
-    
+
     def test_schemas_exist(self):
         """Test that we can import schemas."""
         try:
