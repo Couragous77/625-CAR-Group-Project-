@@ -24,6 +24,7 @@ class TestHealthCheck:
         """Test that we can import the main app."""
         try:
             from app.main import app
+
             assert app is not None
         except ImportError:
             pytest.skip("FastAPI app not available in test environment")
@@ -32,6 +33,7 @@ class TestHealthCheck:
         """Test that we can import database models."""
         try:
             from app import models
+
             assert models is not None
         except ImportError:
             pytest.skip("Models not available in test environment")
@@ -40,6 +42,7 @@ class TestHealthCheck:
         """Test that we can import schemas."""
         try:
             from app import schemas
+
             assert schemas is not None
         except ImportError:
             pytest.skip("Schemas not available in test environment")

@@ -31,11 +31,9 @@ jobs:
         working-directory: ./backend
         run: ruff check .
 
-      - name: Format and check with Black
+      - name: Check Black formatting
         working-directory: ./backend
-        run: |
-          black .
-          git diff --exit-code
+        run: black --check .
 
   backend-test:
     name: Backend Tests

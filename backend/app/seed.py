@@ -34,9 +34,11 @@ def seed(db: Session):
     ]
     existing = {
         (c.name, c.type)
-        for c in db.query(models.Category).filter(
+        for c in db.query(models.Category)
+        .filter(
             (models.Category.user_id.is_(None)) | (models.Category.user_id == user.id)
-        ).all()
+        )
+        .all()
     }
     for name, ctype in default_cats:
         if (name, ctype) not in existing:
@@ -44,19 +46,27 @@ def seed(db: Session):
 
     db.flush()
 
-    food = db.query(models.Category).filter_by(
-        user_id=user.id, name="Food", type="expense"
-    ).first()
-    rent = db.query(models.Category).filter_by(
-        user_id=user.id, name="Rent", type="expense"
-    ).first()
-    job = db.query(models.Category).filter_by(
-        user_id=user.id, name="Part-time Job", type="income"
-    ).first()
+    food = (
+        db.query(models.Category)
+        .filter_by(user_id=user.id, name="Food", type="expense")
+        .first()
+    )
+    rent = (
+        db.query(models.Category)
+        .filter_by(user_id=user.id, name="Rent", type="expense")
+        .first()
+    )
+    job = (
+        db.query(models.Category)
+        .filter_by(user_id=user.id, name="Part-time Job", type="income")
+        .first()
+    )
 
-    if not db.query(models.Expense).filter_by(
-        user_id=user.id, vendor="Campus Cafe"
-    ).first():
+    if (
+        not db.query(models.Expense)
+        .filter_by(user_id=user.id, vendor="Campus Cafe")
+        .first()
+    ):
         db.add(
             models.Expense(
                 user_id=user.id,
@@ -67,9 +77,11 @@ def seed(db: Session):
                 tags="lunch",
             )
         )
-    if not db.query(models.Expense).filter_by(
-        user_id=user.id, vendor="September Rent"
-    ).first():
+    if (
+        not db.query(models.Expense)
+        .filter_by(user_id=user.id, vendor="September Rent")
+        .first()
+    ):
         db.add(
             models.Expense(
                 user_id=user.id,
@@ -79,9 +91,11 @@ def seed(db: Session):
                 payment_method="Checking",
             )
         )
-    if not db.query(models.Income).filter_by(
-        user_id=user.id, source="Part-time Job"
-    ).first():
+    if (
+        not db.query(models.Income)
+        .filter_by(user_id=user.id, source="Part-time Job")
+        .first()
+    ):
         db.add(
             models.Income(
                 user_id=user.id,
