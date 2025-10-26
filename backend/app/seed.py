@@ -95,6 +95,7 @@ def seed(db: Session):
     db.commit()
     print("Seed complete. Demo user:", email)
 
+
 if __name__ == "__main__":
     Base.metadata.create_all(bind=engine)
     with SessionLocal() as db:
