@@ -23,7 +23,7 @@ def seed(db: Session):
         ("Scholarship", "income"),
         ("Part-time Job", "income"),
     ]
-    existing = {(c.name, c.type) for c in db.query(models.Category).filter((models.Category.user_id == None) | (models.Category.user_id == user.id)).all()}
+    existing = {(c.name, c.type) for c in db.query(models.Category).filter((models.Category.user_id.is_(None)) | (models.Category.user_id == user.id)).all()}
     for name, ctype in default_cats:
         if (name, ctype) not in existing:
             db.add(models.Category(user_id=user.id, name=name, type=ctype))
