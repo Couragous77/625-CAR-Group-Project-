@@ -10,6 +10,7 @@ class UserCreate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
 
+
 class UserOut(BaseModel):
     id: int
     email: EmailStr
@@ -24,6 +25,7 @@ class UserOut(BaseModel):
 class CategoryCreate(BaseModel):
     name: str
     type: str
+
 
 class CategoryOut(BaseModel):
     id: int
@@ -42,6 +44,7 @@ class ExpenseCreate(BaseModel):
     payment_method: Optional[str] = None
     tags: Optional[str] = None
     notes: Optional[str] = None
+
 
 class ExpenseOut(BaseModel):
     id: int
@@ -66,6 +69,7 @@ class IncomeCreate(BaseModel):
     reference: Optional[str] = None
     notes: Optional[str] = None
     is_recurring: bool = False
+
 
 class IncomeOut(BaseModel):
     id: int

@@ -1,5 +1,4 @@
-"""
-Basic health check test for the Budget CAR API.
+"""Basic health check test for the Budget CAR API.
 
 This ensures the API server starts and responds correctly.
 """
