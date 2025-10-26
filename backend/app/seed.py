@@ -40,9 +40,7 @@ def seed(db: Session):
     }
     for name, ctype in default_cats:
         if (name, ctype) not in existing:
-            db.add(
-                models.Category(user_id=user.id, name=name, type=ctype)
-            )
+            db.add(models.Category(user_id=user.id, name=name, type=ctype))
 
     db.flush()
 
