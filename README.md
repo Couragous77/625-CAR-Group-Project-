@@ -1,5 +1,7 @@
 # Budget CAR — Full-Stack Student Budgeting App
 
+[![CI](https://github.com/Couragous77/625-CAR-Group-Project-/actions/workflows/ci.yml/badge.svg)](https://github.com/Couragous77/625-CAR-Group-Project-/actions/workflows/ci.yml)
+
 A dockerized development environment for **Budget CAR** - a smart budgeting app designed for students. Built with FastAPI backend, React frontend, and PostgreSQL database.
 
 ## 🎯 Features
@@ -17,6 +19,17 @@ A dockerized development environment for **Budget CAR** - a smart budgeting app 
 - **Backend**: FastAPI with SQLAlchemy ORM
 - **Database**: PostgreSQL 16 with Alembic migrations
 - **DevOps**: Docker Compose for orchestration
+- **CI/CD**: GitHub Actions (automated linting & tests)
+
+## 🔄 Continuous Integration
+
+This project uses GitHub Actions for automated quality checks on every push and pull request:
+
+- **Backend Linting**: `ruff` code quality checks and `black` formatting validation
+- **Backend Tests**: `pytest` test suite execution
+- **Frontend Build**: Vite build verification to ensure production readiness
+
+All checks must pass before merging pull requests. View the [CI workflow](.github/workflows/ci.yml) for details.
 
 ## Prerequisites
 
