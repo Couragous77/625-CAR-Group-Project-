@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/Logo';
+import PasswordToggleButton from '../components/PasswordToggleButton';
 
 function Register() {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: '', color: '' });
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -20,12 +22,43 @@ function Register() {
     tosAccepted: false
   });
 
+  // Password validation helper
+  const validatePassword = (password) => {
+    const requirements = {
+      minLength: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasNumber: /\d/.test(password)
+    };
+
+    const metRequirements = Object.values(requirements).filter(Boolean).length;
+    
+    let strength = { score: 0, label: '', color: '' };
+    if (metRequirements === 0) {
+      strength = { score: 0, label: '', color: '' };
+    } else if (metRequirements <= 2) {
+      strength = { score: 1, label: 'Weak', color: '#ef4444' };
+    } else if (metRequirements === 3) {
+      strength = { score: 2, label: 'Medium', color: '#f59e0b' };
+    } else if (metRequirements === 4) {
+      strength = { score: 3, label: 'Strong', color: '#10b981' };
+    }
+
+    return { requirements, strength };
+  };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+
+    // Real-time password strength validation
+    if (name === 'password') {
+      const { strength } = validatePassword(value);
+      setPasswordStrength(strength);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -45,10 +78,26 @@ function Register() {
       setError('Please enter a valid email');
       return;
     }
-    if (formData.password.length < 8) {
+    
+    // Enhanced password validation
+    const { requirements } = validatePassword(formData.password);
+    if (!requirements.minLength) {
       setError('Password must be at least 8 characters');
       return;
     }
+    if (!requirements.hasUppercase) {
+      setError('Password must include an uppercase letter');
+      return;
+    }
+    if (!requirements.hasLowercase) {
+      setError('Password must include a lowercase letter');
+      return;
+    }
+    if (!requirements.hasNumber) {
+      setError('Password must include a number');
+      return;
+    }
+    
     if (formData.password !== formData.confirm) {
       setError('Passwords do not match');
       return;
@@ -71,6 +120,8 @@ function Register() {
     });
     navigate('/dashboard');
   };
+
+  const { requirements: passwordReqs } = validatePassword(formData.password);
 
   return (
     <div className="page-center">
@@ -140,7 +191,7 @@ function Register() {
             <div className="grid">
               <div className="field">
                 <label htmlFor="password">Password</label>
-                <div className="control">
+                <div className="password-input-wrapper">
                   <input
                     id="password"
                     name="password"
@@ -151,21 +202,54 @@ function Register() {
                     onChange={handleChange}
                     required
                   />
-                  <button
-                    type="button"
-                    className="toggle-eye"
-                    aria-label="Show or hide password"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? 'Hide' : 'Show'}
-                  </button>
+                  <PasswordToggleButton 
+                    showPassword={showPassword} 
+                    onToggle={() => setShowPassword(!showPassword)} 
+                  />
                 </div>
-                <div className="hint">Use at least 8 characters</div>
+                
+                {/* Password Requirements */}
+                <div className="password-hints">
+                  <div className={`password-requirement ${passwordReqs.minLength ? 'met' : ''}`}>
+                    <span className="requirement-icon">{passwordReqs.minLength ? '✓' : '○'}</span>
+                    At least 8 characters
+                  </div>
+                  <div className={`password-requirement ${passwordReqs.hasUppercase ? 'met' : ''}`}>
+                    <span className="requirement-icon">{passwordReqs.hasUppercase ? '✓' : '○'}</span>
+                    One uppercase letter
+                  </div>
+                  <div className={`password-requirement ${passwordReqs.hasLowercase ? 'met' : ''}`}>
+                    <span className="requirement-icon">{passwordReqs.hasLowercase ? '✓' : '○'}</span>
+                    One lowercase letter
+                  </div>
+                  <div className={`password-requirement ${passwordReqs.hasNumber ? 'met' : ''}`}>
+                    <span className="requirement-icon">{passwordReqs.hasNumber ? '✓' : '○'}</span>
+                    One number
+                  </div>
+                </div>
+
+                {/* Password Strength Meter */}
+                {formData.password && (
+                  <div className="password-strength">
+                    <div className="strength-label" style={{ color: passwordStrength.color }}>
+                      Password strength: <strong>{passwordStrength.label}</strong>
+                    </div>
+                    <div className="strength-meter">
+                      <div 
+                        className="strength-meter-fill"
+                        style={{ 
+                          width: `${(passwordStrength.score / 3) * 100}%`,
+                          backgroundColor: passwordStrength.color
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="field">
                 <label htmlFor="confirm">Confirm password</label>
-                <div className="control">
+                <div className="password-input-wrapper">
                   <input
                     id="confirm"
                     name="confirm"
@@ -176,16 +260,34 @@ function Register() {
                     onChange={handleChange}
                     required
                   />
-                  <button
-                    type="button"
-                    className="toggle-eye"
-                    aria-label="Show or hide password"
-                    onClick={() => setShowConfirm(!showConfirm)}
-                  >
-                    {showConfirm ? 'Hide' : 'Show'}
-                  </button>
+                  <PasswordToggleButton 
+                    showPassword={showConfirm} 
+                    onToggle={() => setShowConfirm(!showConfirm)} 
+                  />
                 </div>
-                <div className="hint">Passwords must match</div>
+                
+                {/* Password Match Validation */}
+                {formData.confirm && (
+                  <div className={`password-match-feedback ${formData.password === formData.confirm ? 'match' : 'no-match'}`}>
+                    {formData.password === formData.confirm ? (
+                      <>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path d="M20 6L9 17l-5-5" />
+                        </svg>
+                        <span>Passwords match</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="8" x2="12" y2="12" />
+                          <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        <span>Passwords do not match</span>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 

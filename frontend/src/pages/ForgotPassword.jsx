@@ -80,19 +80,17 @@ export default function ForgotPassword() {
               <form onSubmit={handleSubmit} noValidate>
                 <div className="field">
                   <label htmlFor="email">Email Address</label>
-                  <div className="control">
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      placeholder="you@school.edu"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      autoFocus
-                    />
-                  </div>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@school.edu"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoFocus
+                  />
                 </div>
 
                 <button className="btn primary" type="submit">

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/Logo';
+import PasswordToggleButton from '../components/PasswordToggleButton';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -96,23 +97,21 @@ export default function Login() {
           <form onSubmit={handleSubmit} noValidate>
             <div className="field">
               <label htmlFor="email">Email</label>
-              <div className="control">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="username"
-                  placeholder="you@school.edu"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="username"
+                placeholder="you@school.edu"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
             </div>
 
             <div className="field">
               <label htmlFor="password">Password</label>
-              <div className="control">
+              <div className="password-input-wrapper">
                 <input
                   id="password"
                   name="password"
@@ -123,14 +122,10 @@ export default function Login() {
                   onChange={handleChange}
                   required
                 />
-                <button
-                  type="button"
-                  className="toggle-eye"
-                  aria-label="Show or hide password"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
+                <PasswordToggleButton 
+                  showPassword={showPassword} 
+                  onToggle={() => setShowPassword(!showPassword)} 
+                />
               </div>
             </div>
 
