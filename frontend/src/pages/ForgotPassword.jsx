@@ -6,14 +6,25 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [fieldError, setFieldError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setFieldError('');
+    setIsLoading(true);
 
     // Basic email validation
-    if (!email || !email.includes('@')) {
-      setError('Please enter a valid email address.');
+    if (!email) {
+      setFieldError('Email is required');
+      setIsLoading(false);
+      return;
+    }
+    
+    if (!email.includes('@')) {
+      setFieldError('Please enter a valid email address');
+      setIsLoading(false);
       return;
     }
 
@@ -25,11 +36,23 @@ export default function ForgotPassword() {
       //   body: JSON.stringify({ email })
       // });
 
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+
       // For now, simulate success
       setSubmitted(true);
     } catch (err) {
       setError('Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    // Clear errors when user starts typing
+    if (fieldError) setFieldError('');
+    if (error) setError('');
   };
 
   return (
@@ -77,7 +100,7 @@ export default function ForgotPassword() {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} noValidate>
+              <form onSubmit={handleSubmit}>
                 <div className="field">
                   <label htmlFor="email">Email Address</label>
                   <input
@@ -87,14 +110,29 @@ export default function ForgotPassword() {
                     autoComplete="email"
                     placeholder="you@school.edu"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={handleEmailChange}
+                    className={fieldError ? 'error' : ''}
                     required
                     autoFocus
+                    aria-invalid={fieldError ? 'true' : 'false'}
+                    aria-describedby={fieldError ? 'email-error' : undefined}
                   />
+                  {fieldError && (
+                    <span id="email-error" className="field-error" role="alert">
+                      {fieldError}
+                    </span>
+                  )}
                 </div>
 
-                <button className="btn primary" type="submit">
-                  Send Reset Link
+                <button className="btn primary" type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <span className="spinner"></span>
+                      Sending...
+                    </>
+                  ) : (
+                    'Send Reset Link'
+                  )}
                 </button>
 
                 <div className="footer-links">

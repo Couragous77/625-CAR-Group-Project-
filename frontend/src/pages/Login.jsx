@@ -14,14 +14,41 @@ export default function Login() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({
+    email: '',
+    password: ''
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setFieldErrors({ email: '', password: '' });
+    setIsLoading(true);
 
     // Basic validation
-    if (!formData.email || !formData.password) {
-      setError('Please enter a valid email and password.');
+    let hasErrors = false;
+    const newFieldErrors = { email: '', password: '' };
+
+    if (!formData.email) {
+      newFieldErrors.email = 'Email is required';
+      hasErrors = true;
+    } else if (!formData.email.includes('@')) {
+      newFieldErrors.email = 'Please enter a valid email address';
+      hasErrors = true;
+    }
+
+    if (!formData.password) {
+      newFieldErrors.password = 'Password is required';
+      hasErrors = true;
+    } else if (formData.password.length < 6) {
+      newFieldErrors.password = 'Password must be at least 6 characters';
+      hasErrors = true;
+    }
+
+    if (hasErrors) {
+      setFieldErrors(newFieldErrors);
+      setIsLoading(false);
       return;
     }
 
@@ -32,6 +59,9 @@ export default function Login() {
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify(formData)
       // });
+
+      // Simulate network delay for loading state
+      await new Promise(resolve => setTimeout(resolve, 800));
 
       // For now, use mock authentication
       login({
@@ -45,6 +75,8 @@ export default function Login() {
       navigate('/dashboard');
     } catch (err) {
       setError('Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -54,6 +86,18 @@ export default function Login() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+
+    // Clear field-specific error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+    // Clear general error when user starts typing
+    if (error) {
+      setError('');
+    }
   };
 
   return (
@@ -94,7 +138,7 @@ export default function Login() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} noValidate>
+          <form onSubmit={handleSubmit}>
             <div className="field">
               <label htmlFor="email">Email</label>
               <input
@@ -105,8 +149,16 @@ export default function Login() {
                 placeholder="you@school.edu"
                 value={formData.email}
                 onChange={handleChange}
+                className={fieldErrors.email ? 'error' : ''}
                 required
+                aria-invalid={fieldErrors.email ? 'true' : 'false'}
+                aria-describedby={fieldErrors.email ? 'email-error' : undefined}
               />
+              {fieldErrors.email && (
+                <span id="email-error" className="field-error" role="alert">
+                  {fieldErrors.email}
+                </span>
+              )}
             </div>
 
             <div className="field">
@@ -120,13 +172,21 @@ export default function Login() {
                   minLength={6}
                   value={formData.password}
                   onChange={handleChange}
+                  className={fieldErrors.password ? 'error' : ''}
                   required
+                  aria-invalid={fieldErrors.password ? 'true' : 'false'}
+                  aria-describedby={fieldErrors.password ? 'password-error' : undefined}
                 />
-                <PasswordToggleButton 
-                  showPassword={showPassword} 
-                  onToggle={() => setShowPassword(!showPassword)} 
+                <PasswordToggleButton
+                  showPassword={showPassword}
+                  onToggle={() => setShowPassword(!showPassword)}
                 />
               </div>
+              {fieldErrors.password && (
+                <span id="password-error" className="field-error" role="alert">
+                  {fieldErrors.password}
+                </span>
+              )}
             </div>
 
             <div className="row">
@@ -143,8 +203,15 @@ export default function Login() {
               <Link to="/forgot-password" className="hint">Forgot password?</Link>
             </div>
 
-            <button className="btn primary" type="submit">
-              Log in
+            <button className="btn primary" type="submit" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <span className="spinner"></span>
+                  Logging in...
+                </>
+              ) : (
+                'Log in'
+              )}
             </button>
 
             <div className="footer-links">

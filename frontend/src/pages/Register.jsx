@@ -10,7 +10,17 @@ function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: '', color: '' });
+  const [fieldErrors, setFieldErrors] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirm: '',
+    status: '',
+    tosAccepted: ''
+  });
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -18,7 +28,6 @@ function Register() {
     password: '',
     confirm: '',
     status: '',
-    referral: '',
     tosAccepted: false
   });
 
@@ -32,7 +41,7 @@ function Register() {
     };
 
     const metRequirements = Object.values(requirements).filter(Boolean).length;
-    
+
     let strength = { score: 0, label: '', color: '' };
     if (metRequirements === 0) {
       strength = { score: 0, label: '', color: '' };
@@ -54,6 +63,18 @@ function Register() {
       [name]: type === 'checkbox' ? checked : value
     }));
 
+    // Clear field-specific error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+    // Clear general error when user starts typing
+    if (error) {
+      setError('');
+    }
+
     // Real-time password strength validation
     if (name === 'password') {
       const { strength } = validatePassword(value);
@@ -61,64 +82,108 @@ function Register() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setFieldErrors({
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      confirm: '',
+      status: '',
+      tosAccepted: ''
+    });
+    setIsLoading(true);
 
-    // Validation
+    // Validation with field-specific errors
+    let hasErrors = false;
+    const newFieldErrors = {
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      confirm: '',
+      status: '',
+      tosAccepted: ''
+    };
+
     if (!formData.firstName.trim()) {
-      setError('First name is required');
-      return;
+      newFieldErrors.firstName = 'First name is required';
+      hasErrors = true;
     }
     if (!formData.lastName.trim()) {
-      setError('Last name is required');
-      return;
+      newFieldErrors.lastName = 'Last name is required';
+      hasErrors = true;
     }
-    if (!formData.email.includes('@')) {
-      setError('Please enter a valid email');
-      return;
+    if (!formData.email) {
+      newFieldErrors.email = 'Email is required';
+      hasErrors = true;
+    } else if (!formData.email.includes('@')) {
+      newFieldErrors.email = 'Please enter a valid email';
+      hasErrors = true;
     }
-    
+
     // Enhanced password validation
     const { requirements } = validatePassword(formData.password);
-    if (!requirements.minLength) {
-      setError('Password must be at least 8 characters');
-      return;
+    if (!formData.password) {
+      newFieldErrors.password = 'Password is required';
+      hasErrors = true;
+    } else if (!requirements.minLength) {
+      newFieldErrors.password = 'Password must be at least 8 characters';
+      hasErrors = true;
+    } else if (!requirements.hasUppercase) {
+      newFieldErrors.password = 'Password must include an uppercase letter';
+      hasErrors = true;
+    } else if (!requirements.hasLowercase) {
+      newFieldErrors.password = 'Password must include a lowercase letter';
+      hasErrors = true;
+    } else if (!requirements.hasNumber) {
+      newFieldErrors.password = 'Password must include a number';
+      hasErrors = true;
     }
-    if (!requirements.hasUppercase) {
-      setError('Password must include an uppercase letter');
-      return;
+
+    if (!formData.confirm) {
+      newFieldErrors.confirm = 'Please confirm your password';
+      hasErrors = true;
+    } else if (formData.password !== formData.confirm) {
+      newFieldErrors.confirm = 'Passwords do not match';
+      hasErrors = true;
     }
-    if (!requirements.hasLowercase) {
-      setError('Password must include a lowercase letter');
-      return;
-    }
-    if (!requirements.hasNumber) {
-      setError('Password must include a number');
-      return;
-    }
-    
-    if (formData.password !== formData.confirm) {
-      setError('Passwords do not match');
-      return;
-    }
+
     if (!formData.status) {
-      setError('Please select your student status');
-      return;
+      newFieldErrors.status = 'Please select your student status';
+      hasErrors = true;
     }
+
     if (!formData.tosAccepted) {
-      setError('You must agree to the Terms and Privacy Policy');
+      newFieldErrors.tosAccepted = 'You must agree to the Terms and Privacy Policy';
+      hasErrors = true;
+    }
+
+    if (hasErrors) {
+      setFieldErrors(newFieldErrors);
+      setIsLoading(false);
       return;
     }
 
-    // Mock registration
-    register({
-      email: formData.email,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      avatar: null
-    });
-    navigate('/dashboard');
+    try {
+      // Simulate network delay for loading state
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Mock registration
+      register({
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        avatar: null
+      });
+      navigate('/dashboard');
+    } catch (err) {
+      setError('Registration failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const { requirements: passwordReqs } = validatePassword(formData.password);
@@ -157,8 +222,16 @@ function Register() {
                   autoComplete="given-name"
                   value={formData.firstName}
                   onChange={handleChange}
+                  className={fieldErrors.firstName ? 'error' : ''}
                   required
+                  aria-invalid={fieldErrors.firstName ? 'true' : 'false'}
+                  aria-describedby={fieldErrors.firstName ? 'firstName-error' : undefined}
                 />
+                {fieldErrors.firstName && (
+                  <span id="firstName-error" className="field-error" role="alert">
+                    {fieldErrors.firstName}
+                  </span>
+                )}
               </div>
               <div className="field">
                 <label htmlFor="lastName">Last name</label>
@@ -169,8 +242,16 @@ function Register() {
                   autoComplete="family-name"
                   value={formData.lastName}
                   onChange={handleChange}
+                  className={fieldErrors.lastName ? 'error' : ''}
                   required
+                  aria-invalid={fieldErrors.lastName ? 'true' : 'false'}
+                  aria-describedby={fieldErrors.lastName ? 'lastName-error' : undefined}
                 />
+                {fieldErrors.lastName && (
+                  <span id="lastName-error" className="field-error" role="alert">
+                    {fieldErrors.lastName}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -184,8 +265,16 @@ function Register() {
                 placeholder="you@school.edu"
                 value={formData.email}
                 onChange={handleChange}
+                className={fieldErrors.email ? 'error' : ''}
                 required
+                aria-invalid={fieldErrors.email ? 'true' : 'false'}
+                aria-describedby={fieldErrors.email ? 'email-error' : undefined}
               />
+              {fieldErrors.email && (
+                <span id="email-error" className="field-error" role="alert">
+                  {fieldErrors.email}
+                </span>
+              )}
             </div>
 
             <div className="grid">
@@ -200,14 +289,23 @@ function Register() {
                     minLength="8"
                     value={formData.password}
                     onChange={handleChange}
+                    className={fieldErrors.password ? 'error' : ''}
                     required
+                    aria-invalid={fieldErrors.password ? 'true' : 'false'}
+                    aria-describedby={fieldErrors.password ? 'password-error' : undefined}
                   />
-                  <PasswordToggleButton 
-                    showPassword={showPassword} 
-                    onToggle={() => setShowPassword(!showPassword)} 
+                  <PasswordToggleButton
+                    showPassword={showPassword}
+                    onToggle={() => setShowPassword(!showPassword)}
                   />
                 </div>
-                
+
+                {fieldErrors.password && (
+                  <span id="password-error" className="field-error" role="alert">
+                    {fieldErrors.password}
+                  </span>
+                )}
+
                 {/* Password Requirements */}
                 <div className="password-hints">
                   <div className={`password-requirement ${passwordReqs.minLength ? 'met' : ''}`}>
@@ -235,9 +333,9 @@ function Register() {
                       Password strength: <strong>{passwordStrength.label}</strong>
                     </div>
                     <div className="strength-meter">
-                      <div 
+                      <div
                         className="strength-meter-fill"
-                        style={{ 
+                        style={{
                           width: `${(passwordStrength.score / 3) * 100}%`,
                           backgroundColor: passwordStrength.color
                         }}
@@ -258,14 +356,23 @@ function Register() {
                     minLength="8"
                     value={formData.confirm}
                     onChange={handleChange}
+                    className={fieldErrors.confirm ? 'error' : ''}
                     required
+                    aria-invalid={fieldErrors.confirm ? 'true' : 'false'}
+                    aria-describedby={fieldErrors.confirm ? 'confirm-error' : undefined}
                   />
-                  <PasswordToggleButton 
-                    showPassword={showConfirm} 
-                    onToggle={() => setShowConfirm(!showConfirm)} 
+                  <PasswordToggleButton
+                    showPassword={showConfirm}
+                    onToggle={() => setShowConfirm(!showConfirm)}
                   />
                 </div>
-                
+
+                {fieldErrors.confirm && (
+                  <span id="confirm-error" className="field-error" role="alert">
+                    {fieldErrors.confirm}
+                  </span>
+                )}
+
                 {/* Password Match Validation */}
                 {formData.confirm && (
                   <div className={`password-match-feedback ${formData.password === formData.confirm ? 'match' : 'no-match'}`}>
@@ -291,60 +398,68 @@ function Register() {
               </div>
             </div>
 
-            <div className="grid">
-              <div className="field">
-                <label htmlFor="status">Student status</label>
-                <select
-                  id="status"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="" disabled>Select status</option>
-                  <option value="undergraduate">Undergraduate</option>
-                  <option value="graduate">Graduate</option>
-                  <option value="part-time">Part-time</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-
-              <div className="field">
-                <label htmlFor="referral">Referral (optional)</label>
-                <input
-                  id="referral"
-                  name="referral"
-                  type="text"
-                  placeholder="Friend code or club"
-                  value={formData.referral}
-                  onChange={handleChange}
-                />
-              </div>
+            <div className="field">
+              <label htmlFor="status">Student status</label>
+              <select
+                id="status"
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className={fieldErrors.status ? 'error' : ''}
+                required
+                aria-invalid={fieldErrors.status ? 'true' : 'false'}
+                aria-describedby={fieldErrors.status ? 'status-error' : undefined}
+              >
+                <option value="" disabled>Select status</option>
+                <option value="undergraduate">Undergraduate</option>
+                <option value="graduate">Graduate</option>
+                <option value="part-time">Part-time</option>
+                <option value="other">Other</option>
+              </select>
+              {fieldErrors.status && (
+                <span id="status-error" className="field-error" role="alert">
+                  {fieldErrors.status}
+                </span>
+              )}
             </div>
 
-            <label className="hint" style={{ display: 'flex', alignItems: 'start', gap: '0.5rem' }}>
-              <input
-                id="tosAccepted"
-                name="tosAccepted"
-                type="checkbox"
-                checked={formData.tosAccepted}
-                onChange={handleChange}
-                required
-              />
-              <span>
-                I agree to the{' '}
-                <a href="/terms" className="hint" style={{ textDecoration: 'underline' }}>
-                  Terms
-                </a>{' '}
-                and{' '}
-                <a href="/privacy" className="hint" style={{ textDecoration: 'underline' }}>
-                  Privacy Policy
-                </a>.
-              </span>
-            </label>
+            <div className="row">
+              <label className="hint" style={{ display: 'flex', alignItems: 'start', gap: '0.5rem' }}>
+                <input
+                  id="tosAccepted"
+                  name="tosAccepted"
+                  type="checkbox"
+                  checked={formData.tosAccepted}
+                  onChange={handleChange}
+                  required
+                />
+                <span>
+                  I agree to the{' '}
+                  <a href="/terms" className="hint" style={{ textDecoration: 'underline' }}>
+                    Terms
+                  </a>{' '}
+                  and{' '}
+                  <a href="/privacy" className="hint" style={{ textDecoration: 'underline' }}>
+                    Privacy Policy
+                  </a>.
+                </span>
+              </label>
+              {fieldErrors.tosAccepted && (
+                <span className="field-error" role="alert" style={{ marginTop: '-0.5rem', marginBottom: '0.5rem' }}>
+                  {fieldErrors.tosAccepted}
+                </span>
+              )}
+            </div>
 
-            <button className="btn" type="submit">
-              Create account
+            <button className="btn" type="submit" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <span className="spinner"></span>
+                  Creating account...
+                </>
+              ) : (
+                'Create account'
+              )}
             </button>
 
             <div className="footer-links" style={{ marginTop: '0.6rem' }}>
