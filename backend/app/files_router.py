@@ -12,7 +12,11 @@ router = APIRouter(prefix="/api/files", tags=["files"])
 
 # Upload directory - will be mounted as Docker volume
 UPLOAD_DIR = Path("/app/uploads")
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+
+# Create upload directory if it doesn't exist. Called on app startup.
+def ensure_upload_dir():
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 # Allowed file extensions for receipts
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".pdf", ".gif"}

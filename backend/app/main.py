@@ -3,11 +3,19 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .auth_router import router as auth_router
 from .config import settings
-from .files_router import router as files_router
+from .files_router import ensure_upload_dir, router as files_router
 from .password_reset_router import router as password_reset_router
 from .transactions_router import router as transactions_router
 
 app = FastAPI(title=settings.app_name)
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize resources on app startup."""
+    # Create upload directory if it doesn't exist
+    ensure_upload_dir()
+
 
 # Configure CORS
 origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]

@@ -280,7 +280,9 @@ def upgrade():
             server_default=sa.text("now()"),
         ),
     )
-    op.create_index("ix_notification_events_user_id", "notification_events", ["user_id"])
+    op.create_index(
+        "ix_notification_events_user_id", "notification_events", ["user_id"]
+    )
     op.create_index(
         "ix_notification_events_user_sent",
         "notification_events",
