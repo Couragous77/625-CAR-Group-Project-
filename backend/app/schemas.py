@@ -165,8 +165,6 @@ class TransactionOut(BaseModel):
 
 
 class NotificationPreferenceCreate(BaseModel):
-    """Schema for creating notification preferences."""
-
     email_enabled: bool = True
     sms_enabled: bool = False
     low_balance_threshold_cents: Optional[int] = None
@@ -174,8 +172,6 @@ class NotificationPreferenceCreate(BaseModel):
 
 
 class NotificationPreferenceOut(BaseModel):
-    """Schema for notification preference response."""
-
     id: UUID
     user_id: UUID
     email_enabled: bool
