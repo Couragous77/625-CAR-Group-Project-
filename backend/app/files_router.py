@@ -14,9 +14,10 @@ router = APIRouter(prefix="/api/files", tags=["files"])
 UPLOAD_DIR = Path("/app/uploads")
 
 
-# Create upload directory if it doesn't exist. Called on app startup.
 def ensure_upload_dir():
+    """Create upload directory if it doesn't exist. Called on app startup."""
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
 
 # Allowed file extensions for receipts
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".pdf", ".gif"}

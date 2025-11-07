@@ -187,7 +187,8 @@ def upgrade():
         ["user_id", "type", "occurred_at"],
     )
     op.execute(
-        "CREATE INDEX IF NOT EXISTS ix_transactions_metadata ON transactions USING GIN (metadata)"
+        "CREATE INDEX IF NOT EXISTS ix_transactions_metadata "
+        "ON transactions USING GIN (metadata)"
     )
 
     # ================================
