@@ -70,7 +70,9 @@ def upgrade():
     op.create_index(
         "ix_sessions_user_expires", "sessions", ["user_id", "expires_at"]
     )
-    op.create_index("ix_sessions_refresh_hash", "sessions", ["refresh_token_hash"])
+    op.create_index(
+        "ix_sessions_refresh_hash", "sessions", ["refresh_token_hash"]
+    )
 
     # ================================
     # Password Reset Tokens table
@@ -124,7 +126,9 @@ def upgrade():
         ),
         sa.Column("name", sa.Text, nullable=False),
         sa.Column("monthly_limit_cents", sa.Integer),
-        sa.Column("is_default", sa.Boolean, nullable=False, server_default="false"),
+        sa.Column(
+            "is_default", sa.Boolean, nullable=False, server_default="false"
+        ),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -209,8 +213,12 @@ def upgrade():
             nullable=False,
             unique=True,
         ),
-        sa.Column("email_enabled", sa.Boolean, nullable=False, server_default="true"),
-        sa.Column("sms_enabled", sa.Boolean, nullable=False, server_default="false"),
+        sa.Column(
+            "email_enabled", sa.Boolean, nullable=False, server_default="true"
+        ),
+        sa.Column(
+            "sms_enabled", sa.Boolean, nullable=False, server_default="false"
+        ),
         sa.Column("low_balance_threshold_cents", sa.Integer),
         sa.Column("quiet_hours", JSONB),
         sa.Column(
