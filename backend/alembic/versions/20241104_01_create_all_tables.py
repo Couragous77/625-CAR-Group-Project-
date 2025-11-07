@@ -1,10 +1,3 @@
-"""Create all tables with UUID support.
-
-Revision ID: 20241104_01
-Revises:
-Create Date: 2024-11-04
-
-"""
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -16,12 +9,10 @@ depends_on = None
 
 
 def upgrade():
-    """Create all tables with UUID primary keys and proper relationships."""
-    
     # Enable extensions
     op.execute("CREATE EXTENSION IF NOT EXISTS citext")
     op.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto")
-    
+
     # ================================
     # Users table
     # ================================
@@ -37,7 +28,7 @@ def upgrade():
         sa.Column("updated_at", sa.DateTime(timezone=True)),
     )
     op.create_index("ix_users_email", "users", ["email"], unique=True)
-    
+
     # ================================
     # Sessions table
     # ================================
@@ -53,7 +44,7 @@ def upgrade():
     op.create_index("ix_sessions_user_id", "sessions", ["user_id"])
     op.create_index("ix_sessions_user_expires", "sessions", ["user_id", "expires_at"])
     op.create_index("ix_sessions_refresh_hash", "sessions", ["refresh_token_hash"])
-    
+
     # ================================
     # Password Reset Tokens table
     # ================================
@@ -69,7 +60,7 @@ def upgrade():
     op.create_index("ix_prt_user_id", "password_reset_tokens", ["user_id"])
     op.create_index("ix_prt_user_expires", "password_reset_tokens", ["user_id", "expires_at"])
     op.create_index("ix_prt_token_hash", "password_reset_tokens", ["token_hash"])
-    
+
     # ================================
     # Categories table
     # ================================
@@ -83,7 +74,7 @@ def upgrade():
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
     )
     op.create_index("ix_categories_user_id", "categories", ["user_id"])
-    
+
     # ================================
     # Transactions table
     # ================================
@@ -106,7 +97,7 @@ def upgrade():
     op.create_index("ix_transactions_user_category", "transactions", ["user_id", "category_id", "occurred_at"])
     op.create_index("ix_transactions_user_type", "transactions", ["user_id", "type", "occurred_at"])
     op.execute("CREATE INDEX IF NOT EXISTS ix_transactions_metadata ON transactions USING GIN (metadata)")
-    
+
     # ================================
     # Notification Preferences table
     # ================================
@@ -120,7 +111,7 @@ def upgrade():
         sa.Column("quiet_hours", JSONB),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
     )
-    
+
     # ================================
     # Category Thresholds table
     # ================================
@@ -131,7 +122,7 @@ def upgrade():
         sa.Column("category_id", UUID(as_uuid=True), sa.ForeignKey("categories.id", ondelete="CASCADE"), nullable=False),
         sa.Column("threshold_cents", sa.Integer, nullable=False),
     )
-    
+
     # ================================
     # Notification Events table
     # ================================
@@ -152,7 +143,6 @@ def upgrade():
 
 
 def downgrade():
-    """Drop all tables in reverse order."""
     op.drop_table("notification_events")
     op.drop_table("category_thresholds")
     op.drop_table("notification_preferences")
@@ -161,7 +151,7 @@ def downgrade():
     op.drop_table("password_reset_tokens")
     op.drop_table("sessions")
     op.drop_table("users")
-    
+
     # Drop extensions
     op.execute("DROP EXTENSION IF EXISTS pgcrypto")
     op.execute("DROP EXTENSION IF EXISTS citext")

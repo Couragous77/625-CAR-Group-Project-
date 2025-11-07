@@ -107,15 +107,35 @@ class CategoryOut(BaseModel):
 
 
 class TransactionCreate(BaseModel):
-    """Schema for creating a transaction."""
+    """
+    Schema for creating a transaction.
 
-    category_id: Optional[UUID] = None
-    type: str = Field(pattern="^(income|expense)$")  # Must be 'income' or 'expense'
-    amount_cents: int = Field(gt=0)  # Must be positive
-    occurred_at: Optional[datetime] = None
-    description: Optional[str] = None
-    receipt_url: Optional[str] = None
-    metadata_: Optional[dict] = Field(default=None, alias="metadata")
+    Business Rules:
+    - amount_cents must be positive (> 0)
+    - type must be 'income' or 'expense'
+    - occurred_at defaults to now if not provided
+    - occurred_at cannot be in the future (validated in endpoint)
+    - category_id must belong to the user (validated in endpoint)
+    """
+
+    category_id: Optional[UUID] = Field(
+        None, description="Category UUID (must belong to user)"
+    )
+    type: str = Field(
+        pattern="^(income|expense)$",
+        description="Transaction type: 'income' or 'expense'",
+    )
+    amount_cents: int = Field(gt=0, description="Amount in cents (must be positive)")
+    occurred_at: Optional[datetime] = Field(
+        None, description="Transaction date (defaults to now, cannot be future)"
+    )
+    description: Optional[str] = Field(
+        None, max_length=500, description="Optional description"
+    )
+    receipt_url: Optional[str] = Field(None, description="URL or path to receipt image")
+    metadata_: Optional[dict] = Field(
+        default=None, description="Additional flexible data (use 'metadata_' in JSON)"
+    )
 
 
 class TransactionOut(BaseModel):
@@ -129,12 +149,14 @@ class TransactionOut(BaseModel):
     occurred_at: datetime
     description: Optional[str]
     receipt_url: Optional[str]
-    metadata_: Optional[dict] = Field(default=None, alias="metadata")
+    metadata_: Optional[dict] = Field(
+        default=None, description="Additional flexible data"
+    )
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True  # Allow both 'metadata' and 'metadata_'
+    model_config = {
+        "from_attributes": True,
+    }
 
 
 # ================================
