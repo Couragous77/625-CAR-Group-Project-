@@ -26,9 +26,13 @@
 
     /* Semantic Colors */
     --good: #2f8f5b;
+    --success: #22c55e;
     --warn: #e58a3b;
+    --warning: #f59e0b;
     --danger: #dc2626;
     --danger-100: #fdecec;
+    --primary: #3b82f6;
+    --info: #3b82f6;
 
     /* Borders & Dividers */
     --border: #e5e7eb;

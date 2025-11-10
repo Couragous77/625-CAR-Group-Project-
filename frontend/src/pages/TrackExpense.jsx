@@ -1,53 +1,37 @@
+import { useState } from 'react';
+import ExpenseForm from '../components/ExpenseForm';
+import ExpenseList from '../components/ExpenseList';
+import '../styles/trackExpense.css';
+
 function TrackExpense() {
+  const [refreshKey, setRefreshKey] = useState(0);
+
   return (
-    <div className="form-container">
+    <div className="track-expense-page">
+      <div className="page-header">
+        <h1>Expense Tracker</h1>
+        <p className="subtitle">Track and manage your expenses</p>
+      </div>
+
+      {/* Add Expense Form */}
       <section className="panel">
-        <h1>Track Expense</h1>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            alert('Expense tracking functionality coming soon!');
-          }}
-        >
-          <div className="field">
-            <label htmlFor="expense-amount">Amount</label>
-            <input
-              id="expense-amount"
-              type="number"
-              inputMode="decimal"
-              placeholder="e.g., 12.99"
-              required
-            />
-          </div>
+        <h2>Add New Expense</h2>
+        <ExpenseForm 
+          transactionType="expense"
+          onSuccess={() => {
+            // Force list to refresh by changing key
+            setRefreshKey(prev => prev + 1);
+          }} 
+        />
+      </section>
 
-          <div className="field">
-            <label htmlFor="expense-category">Category</label>
-            <select id="expense-category" required>
-              <option value="" disabled>Select category</option>
-              <option>Textbooks</option>
-              <option>Tuition</option>
-              <option>Rent</option>
-              <option>Food</option>
-              <option>Entertainment</option>
-              <option>Transportation</option>
-              <option>Misc</option>
-            </select>
-          </div>
-
-          <div className="field">
-            <label htmlFor="expense-description">Description (optional)</label>
-            <input id="expense-description" type="text" placeholder="e.g., Coffee at campus" />
-          </div>
-
-          <div className="field">
-            <label htmlFor="expense-date">Date</label>
-            <input id="expense-date" type="date" required />
-          </div>
-
-          <button className="btn primary" type="submit">
-            Add Expense
-          </button>
-        </form>
+      {/* Expense List */}
+      <section className="panel">
+        <h2>Your Expenses</h2>
+        <ExpenseList 
+          transactionType="expense"
+          refreshKey={refreshKey} 
+        />
       </section>
     </div>
   );

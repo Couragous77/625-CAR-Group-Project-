@@ -7,6 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --host",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
     "lint": "echo \"(add eslint when ready)\"",
     "start:all": "echo \"Use 'make up' to run with Docker Compose\""
   },
@@ -17,6 +20,9 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
-    "vite": "^5.4.8"
+    "@vitest/ui": "^1.0.4",
+    "jsdom": "^23.0.1",
+    "vite": "^5.4.8",
+    "vitest": "^1.0.4"
   }
 }
