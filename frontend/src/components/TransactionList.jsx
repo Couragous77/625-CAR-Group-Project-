@@ -91,10 +91,9 @@ export default function TransactionList({ refreshKey = 0, transactionType = 'exp
   async function loadCategories() {
     try {
       const token = getToken();
-      const cats = await listCategories(token);
-      // Filter by transaction type
-      const filteredCats = cats.filter(cat => cat.type === transactionType);
-      setCategories(filteredCats);
+      // Pass type to filter categories on the backend
+      const cats = await listCategories(token, transactionType);
+      setCategories(cats);
     } catch (error) {
       // Silent fail, not critical
     }

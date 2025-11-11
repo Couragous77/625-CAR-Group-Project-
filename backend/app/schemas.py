@@ -85,6 +85,7 @@ class CategoryCreate(BaseModel):
     """Schema for creating a category."""
 
     name: str
+    type: str  # 'income' or 'expense'
     monthly_limit_cents: Optional[int] = None
     is_default: bool = False
 
@@ -94,6 +95,7 @@ class CategoryOut(BaseModel):
 
     id: UUID
     name: str
+    type: str
     monthly_limit_cents: Optional[int]
     is_default: bool
 

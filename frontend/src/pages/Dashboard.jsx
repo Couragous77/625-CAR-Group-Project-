@@ -10,6 +10,7 @@ function Dashboard() {
   const { getToken } = useAuth();
   const [recentIncome, setRecentIncome] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [expenseEnvelopes, setExpenseEnvelopes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalIncome, setTotalIncome] = useState(0);
 
@@ -26,7 +27,7 @@ function Dashboard() {
       setLoading(true);
       const token = getToken();
 
-      // Load categories
+      // Load all categories
       const cats = await listCategories(token);
       setCategories(cats);
 
@@ -36,7 +37,7 @@ function Dashboard() {
       const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
       // Fetch income for current month
-      const params = {
+      const incomeParams = {
         type: 'income',
         start_date: firstDay.toISOString(),
         end_date: lastDay.toISOString(),
@@ -46,12 +47,48 @@ function Dashboard() {
         sort_order: 'desc',
       };
 
-      const data = await listTransactions(params, token);
-      setRecentIncome(data.items || []);
+      const incomeData = await listTransactions(incomeParams, token);
+      setRecentIncome(incomeData.items || []);
 
       // Calculate total income for current month
-      const total = (data.items || []).reduce((sum, item) => sum + item.amount_cents, 0);
-      setTotalIncome(total);
+      const totalInc = (incomeData.items || []).reduce((sum, item) => sum + item.amount_cents, 0);
+      setTotalIncome(totalInc);
+
+      // Fetch expenses for current month to calculate envelope spending
+      const expenseParams = {
+        type: 'expense',
+        start_date: firstDay.toISOString(),
+        end_date: lastDay.toISOString(),
+        page: 1,
+        limit: 1000, // Get all expenses for the month
+      };
+
+      const expenseData = await listTransactions(expenseParams, token);
+      const expenses = expenseData.items || [];
+
+      // Calculate spending per category for expense envelopes
+      const expenseCats = cats.filter(cat => cat.type === 'expense' && cat.monthly_limit_cents);
+      const envelopesWithSpending = expenseCats.map(cat => {
+        const spent = expenses
+          .filter(exp => exp.category_id === cat.id)
+          .reduce((sum, exp) => sum + exp.amount_cents, 0);
+        
+        const limit = cat.monthly_limit_cents || 0;
+        const percentage = limit > 0 ? (spent / limit) * 100 : 0;
+        const remaining = limit - spent;
+
+        return {
+          ...cat,
+          spent,
+          limit,
+          remaining,
+          percentage: Math.min(percentage, 100), // Cap at 100%
+          isOverBudget: spent > limit,
+          isNearLimit: percentage >= 80 && percentage < 100,
+        };
+      });
+
+      setExpenseEnvelopes(envelopesWithSpending);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
@@ -207,21 +244,67 @@ function Dashboard() {
         </section>
 
         <section className="panel" aria-labelledby="cats-title">
-          <h2 id="cats-title">Expense Categories</h2>
-          <ul className="list">
-            <li>
-              <span>Textbooks</span>
-            </li>
-            <li>
-              <span>Rent</span>
-            </li>
-            <li>
-              <span>Food</span>
-            </li>
-            <li>
-              <span>Entertainment</span>
-            </li>
-          </ul>
+          <h2 id="cats-title">Budget Envelopes</h2>
+          {loading ? (
+            <p className="muted">Loading envelopes...</p>
+          ) : expenseEnvelopes.length === 0 ? (
+            <div>
+              <p className="muted">No budget envelopes set up yet.</p>
+              <Link to="/envelopes" className="btn primary" style={{ marginTop: '1rem', width: '100%' }}>
+                Create Envelopes
+              </Link>
+            </div>
+          ) : (
+            <ul className="list" style={{ gap: '1rem' }}>
+              {expenseEnvelopes.map((envelope) => (
+                <li key={envelope.id} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <strong>{envelope.name}</strong>
+                    <span className="muted" style={{ fontSize: '0.875rem' }}>
+                      {formatCurrency(envelope.spent)} / {formatCurrency(envelope.limit)}
+                    </span>
+                  </div>
+                  
+                  {/* Progress bar */}
+                  <div style={{
+                    width: '100%',
+                    height: '8px',
+                    backgroundColor: '#e5e7eb',
+                    borderRadius: '4px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      width: `${envelope.percentage}%`,
+                      height: '100%',
+                      backgroundColor: envelope.isOverBudget 
+                        ? 'var(--danger, #ef4444)' 
+                        : envelope.isNearLimit 
+                        ? 'var(--warn, #f59e0b)' 
+                        : 'var(--success, #10b981)',
+                      transition: 'width 0.3s ease'
+                    }}></div>
+                  </div>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
+                    <span style={{ 
+                      color: envelope.isOverBudget ? 'var(--danger)' : envelope.remaining > 0 ? 'var(--success)' : 'var(--muted)' 
+                    }}>
+                      {envelope.isOverBudget ? 'Over budget' : `${formatCurrency(envelope.remaining)} left`}
+                    </span>
+                    <span className="muted">{Math.round(envelope.percentage)}%</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          
+          <Link
+            to="/envelopes"
+            className="btn secondary"
+            style={{ marginTop: '1rem', width: '100%', textAlign: 'center' }}
+          >
+            Manage Envelopes
+          </Link>
         </section>
       </aside>
     </div>

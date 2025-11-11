@@ -48,10 +48,9 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
     try {
       setLoadingCategories(true);
       const token = getToken();
-      const cats = await listCategories(token);
-      // Filter categories by transaction type
-      const filteredCats = cats.filter(cat => cat.type === transactionType);
-      setCategories(filteredCats);
+      // Pass type to filter categories on the backend
+      const cats = await listCategories(token, transactionType);
+      setCategories(cats);
     } catch (error) {
       toast.error('Failed to load categories');
     } finally {

@@ -119,6 +119,7 @@ class Category(Base):
         index=True,
     )
     name = Column(Text, nullable=False)
+    type = Column(String, nullable=False, default="expense")  # 'income' or 'expense'
     monthly_limit_cents = Column(Integer)  # Optional spending limit in cents
     is_default = Column(Boolean, nullable=False, default=False)
     created_at = Column(

@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .auth_router import router as auth_router
+from .categories_router import router as categories_router
 from .config import settings
 from .files_router import ensure_upload_dir, router as files_router
 from .password_reset_router import router as password_reset_router
@@ -37,11 +38,11 @@ def health():
 # Include routers
 app.include_router(auth_router)
 app.include_router(password_reset_router)
+app.include_router(categories_router, prefix="/api/categories", tags=["categories"])
 app.include_router(transactions_router)
 app.include_router(files_router)
 
 
 # Future routers to be added:
-# from app.routers import categories, notifications
-# app.include_router(categories.router, prefix="/api/categories", tags=["categories"])
+# from app.routers import notifications
 # app.include_router(notifications.router, prefix="/api/notifications", tags=["notifications"])

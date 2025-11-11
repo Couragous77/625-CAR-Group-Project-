@@ -65,12 +65,12 @@ def seed(db):
     # Categories
     # ================================
     categories_data = [
-        (rent_cat_id, "Rent", 120000, True),
-        (groceries_cat_id, "Groceries", 40000, False),
-        (transport_cat_id, "Transport", 15000, False),
+        (rent_cat_id, "Rent", 120000, True, "expense"),
+        (groceries_cat_id, "Groceries", 40000, False, "expense"),
+        (transport_cat_id, "Transport", 15000, False, "expense"),
     ]
 
-    for cat_id, name, limit, is_default in categories_data:
+    for cat_id, name, limit, is_default, cat_type in categories_data:
         if not db.query(models.Category).filter_by(id=cat_id).first():
             category = models.Category(
                 id=cat_id,
@@ -78,6 +78,7 @@ def seed(db):
                 name=name,
                 monthly_limit_cents=limit,
                 is_default=is_default,
+                type=cat_type,
             )
             db.add(category)
             print(f"✓ Created category: {name}")

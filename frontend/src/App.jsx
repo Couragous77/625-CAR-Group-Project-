@@ -10,6 +10,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import TrackExpense from './pages/TrackExpense';
 import TrackIncome from './pages/TrackIncome';
+import Envelopes from './pages/Envelopes';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import Terms from './pages/Terms';
@@ -125,6 +126,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <TrackIncome />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/envelopes"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Envelopes />
             </Layout>
           </ProtectedRoute>
         }
