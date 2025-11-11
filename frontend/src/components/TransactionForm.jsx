@@ -6,9 +6,9 @@ import { listCategories, createCategory } from '../services/categoryService';
 import { getTodayString, toISOString } from '../utils/date';
 import { dollarsToCents, centsToDollars } from '../utils/currency';
 import Spinner from './Spinner';
-import '../styles/expenseForm.css';
+import '../styles/transactionForm.css';
 
-export default function ExpenseForm({ transaction = null, onSuccess, onCancel, transactionType = 'expense' }) {
+export default function TransactionForm({ transaction = null, onSuccess, onCancel, transactionType = 'expense' }) {
   const { getToken } = useAuth();
   const toast = useToast();
   
@@ -136,7 +136,7 @@ export default function ExpenseForm({ transaction = null, onSuccess, onCancel, t
         onSuccess();
       }
     } catch (error) {
-      toast.error(error.message || 'Failed to save expense');
+      toast.error(error.message || 'Failed to save transaction');
     } finally {
       setLoading(false);
     }
@@ -179,7 +179,7 @@ export default function ExpenseForm({ transaction = null, onSuccess, onCancel, t
   }
   
   return (
-    <form onSubmit={handleSubmit} className="expense-form">
+    <form onSubmit={handleSubmit} className="transaction-form">
       {/* Amount */}
       <div className="field">
         <label htmlFor="amount">

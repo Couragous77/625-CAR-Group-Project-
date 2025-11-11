@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import Layout from '../components/Layout';
-import ExpenseForm from '../components/ExpenseForm';
-import ExpenseList from '../components/ExpenseList';
-import '../styles/trackExpense.css'; // Reuse expense styles
+import TransactionForm from '../components/TransactionForm';
+import TransactionList from '../components/TransactionList';
+import '../styles/trackTransaction.css';
 
 function TrackIncome() {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -12,24 +12,30 @@ function TrackIncome() {
   };
 
   return (
-    <Layout>
-      <div className="track-expense-container">
-        <header className="page-header">
-          <h1>Track Income</h1>
-          <p>Manage your income sources and earnings</p>
-        </header>
+    <div className="track-transaction-page">
+      <div className="page-header">
+        <h1>Income Tracker</h1>
+        <p className="subtitle">Manage your income sources and earnings</p>
+      </div>
 
-        <ExpenseForm 
+      {/* Add Income Form */}
+      <section className="panel">
+        <h2>Add New Income</h2>
+        <TransactionForm
           transactionType="income"
-          onSuccess={handleSuccess} 
+          onSuccess={handleSuccess}
         />
-        
-        <ExpenseList 
+      </section>
+
+      {/* Income List */}
+      <section className="panel">
+        <h2>Your Income</h2>
+        <TransactionList
           transactionType="income"
           refreshKey={refreshKey}
         />
-      </div>
-    </Layout>
+      </section>
+    </div>
   );
 }
 

@@ -1,13 +1,17 @@
 import { useState } from 'react';
-import ExpenseForm from '../components/ExpenseForm';
-import ExpenseList from '../components/ExpenseList';
-import '../styles/trackExpense.css';
+import TransactionForm from '../components/TransactionForm';
+import TransactionList from '../components/TransactionList';
+import '../styles/trackTransaction.css';
 
 function TrackExpense() {
   const [refreshKey, setRefreshKey] = useState(0);
 
+  const handleSuccess = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+
   return (
-    <div className="track-expense-page">
+    <div className="track-transaction-page">
       <div className="page-header">
         <h1>Expense Tracker</h1>
         <p className="subtitle">Track and manage your expenses</p>
@@ -16,21 +20,18 @@ function TrackExpense() {
       {/* Add Expense Form */}
       <section className="panel">
         <h2>Add New Expense</h2>
-        <ExpenseForm 
+        <TransactionForm
           transactionType="expense"
-          onSuccess={() => {
-            // Force list to refresh by changing key
-            setRefreshKey(prev => prev + 1);
-          }} 
+          onSuccess={handleSuccess}
         />
       </section>
 
       {/* Expense List */}
       <section className="panel">
         <h2>Your Expenses</h2>
-        <ExpenseList 
+        <TransactionList
           transactionType="expense"
-          refreshKey={refreshKey} 
+          refreshKey={refreshKey}
         />
       </section>
     </div>

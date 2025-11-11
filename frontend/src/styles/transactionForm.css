@@ -1,4 +1,4 @@
-.expense-form {
+.transaction-form {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -109,7 +109,7 @@
 
 /* Mobile adjustments */
 @media (max-width: 600px) {
-  .expense-form {
+  .transaction-form {
     gap: 1rem;
   }
   

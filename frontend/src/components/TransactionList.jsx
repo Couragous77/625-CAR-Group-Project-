@@ -8,16 +8,16 @@ import { formatDate } from '../utils/date';
 import { formatCurrency } from '../utils/currency';
 import Spinner from './Spinner';
 import Modal from './Modal';
-import ExpenseForm from './ExpenseForm';
-import '../styles/expenseList.css';
+import TransactionForm from './TransactionForm';
+import '../styles/transactionList.css';
 
-export default function ExpenseList({ refreshKey = 0, transactionType = 'expense' }) {
+export default function TransactionList({ refreshKey = 0, transactionType = 'expense' }) {
   const { getToken } = useAuth();
   const toast = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   
   const [loading, setLoading] = useState(false);
-  const [expenses, setExpenses] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
@@ -27,9 +27,9 @@ export default function ExpenseList({ refreshKey = 0, transactionType = 'expense
   
   const [categories, setCategories] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingExpense, setEditingExpense] = useState(null);
+  const [editingTransaction, setEditingTransaction] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deletingExpense, setDeletingExpense] = useState(null);
+  const [deletingTransaction, setDeletingTransaction] = useState(null);
   
   // Filters from URL
   const page = parseInt(searchParams.get('page')) || 1;
@@ -45,14 +45,14 @@ export default function ExpenseList({ refreshKey = 0, transactionType = 'expense
   
   // Load data
   useEffect(() => {
-    loadExpenses();
+    loadTransactions();
   }, [searchParams, refreshKey]);
   
   useEffect(() => {
     loadCategories();
   }, [transactionType]);
   
-  async function loadExpenses() {
+  async function loadTransactions() {
     try {
       setLoading(true);
       const token = getToken();
@@ -73,7 +73,7 @@ export default function ExpenseList({ refreshKey = 0, transactionType = 'expense
       if (maxAmount) params.max_amount = Math.round(parseFloat(maxAmount) * 100);
       
       const response = await listTransactions(params, token);
-      setExpenses(response.items || []);
+      setTransactions(response.items || []);
       setPagination({
         page: response.page,
         limit: response.limit,
@@ -81,8 +81,8 @@ export default function ExpenseList({ refreshKey = 0, transactionType = 'expense
         totalPages: response.total_pages,
       });
     } catch (error) {
-      toast.error(error.message || 'Failed to load expenses');
-      setExpenses([]);
+      toast.error(error.message || `Failed to load ${transactionType === 'income' ? 'income' : 'expenses'}`);
+      setTransactions([]);
     } finally {
       setLoading(false);
     }
@@ -124,26 +124,27 @@ export default function ExpenseList({ refreshKey = 0, transactionType = 'expense
     }
   }
   
-  function handleEdit(expense) {
-    setEditingExpense(expense);
+  function handleEdit(transaction) {
+    setEditingTransaction(transaction);
     setShowEditModal(true);
   }
   
-  function handleDelete(expense) {
-    setDeletingExpense(expense);
+  function handleDelete(transaction) {
+    setDeletingTransaction(transaction);
     setShowDeleteConfirm(true);
   }
   
   async function confirmDelete() {
     try {
       const token = getToken();
-      await deleteTransaction(deletingExpense.id, token);
-      toast.success('Expense deleted');
+      await deleteTransaction(deletingTransaction.id, token);
+      const itemName = transactionType === 'income' ? 'Income' : 'Expense';
+      toast.success(`${itemName} deleted`);
       setShowDeleteConfirm(false);
-      setDeletingExpense(null);
-      loadExpenses(); // Refresh list
+      setDeletingTransaction(null);
+      loadTransactions(); // Refresh list
     } catch (error) {
-      toast.error(error.message || 'Failed to delete expense');
+      toast.error(error.message || 'Failed to delete transaction');
     }
   }
   
@@ -152,14 +153,14 @@ export default function ExpenseList({ refreshKey = 0, transactionType = 'expense
     return cat ? cat.name : 'Unknown';
   }
   
-  if (loading && expenses.length === 0) {
+  if (loading && transactions.length === 0) {
     return <Spinner message={`Loading ${transactionType === 'income' ? 'income' : 'expenses'}...`} />;
   }
   
   return (
-    <div className="expense-list">
+    <div className="transaction-list">
       {/* Filters */}
-      <div className="expense-filters">
+      <div className="transaction-filters">
         <div className="filter-row">
           <input
             type="search"
@@ -236,7 +237,7 @@ export default function ExpenseList({ refreshKey = 0, transactionType = 'expense
       
       {/* Table */}
       <div className="table-container">
-        <table className="expense-table">
+        <table className="transaction-table">
           <thead>
             <tr>
               <th onClick={() => handleSort('occurred_at')} className="sortable">
@@ -251,30 +252,30 @@ export default function ExpenseList({ refreshKey = 0, transactionType = 'expense
             </tr>
           </thead>
           <tbody>
-            {expenses.length === 0 ? (
+            {transactions.length === 0 ? (
               <tr>
                 <td colSpan="5" className="no-data">
                   {loading ? 'Loading...' : `No ${transactionType === 'income' ? 'income' : 'expenses'} found`}
                 </td>
               </tr>
             ) : (
-              expenses.map(expense => (
-                <tr key={expense.id}>
-                  <td>{formatDate(expense.occurred_at)}</td>
-                  <td className="amount">{formatCurrency(expense.amount_cents)}</td>
-                  <td>{getCategoryName(expense.category_id)}</td>
-                  <td className="description">{expense.description || '—'}</td>
+              transactions.map(transaction => (
+                <tr key={transaction.id}>
+                  <td>{formatDate(transaction.occurred_at)}</td>
+                  <td className="amount">{formatCurrency(transaction.amount_cents)}</td>
+                  <td>{getCategoryName(transaction.category_id)}</td>
+                  <td className="description">{transaction.description || '—'}</td>
                   <td className="actions-col">
                     <button
                       className="btn-icon"
-                      onClick={() => handleEdit(expense)}
+                      onClick={() => handleEdit(transaction)}
                       title="Edit"
                     >
                       ✏️
                     </button>
                     <button
                       className="btn-icon"
-                      onClick={() => handleDelete(expense)}
+                      onClick={() => handleDelete(transaction)}
                       title="Delete"
                     >
                       🗑️
@@ -330,12 +331,12 @@ export default function ExpenseList({ refreshKey = 0, transactionType = 'expense
         title={`Edit ${transactionType === 'income' ? 'Income' : 'Expense'}`}
         size="medium"
       >
-        <ExpenseForm
-          transaction={editingExpense}
+        <TransactionForm
+          transaction={editingTransaction}
           transactionType={transactionType}
           onSuccess={() => {
             setShowEditModal(false);
-            loadExpenses();
+            loadTransactions();
           }}
           onCancel={() => setShowEditModal(false)}
         />
@@ -350,11 +351,11 @@ export default function ExpenseList({ refreshKey = 0, transactionType = 'expense
       >
         <div className="delete-confirm">
           <p>Are you sure you want to delete this {transactionType === 'income' ? 'income' : 'expense'}?</p>
-          {deletingExpense && (
-            <div className="delete-expense-details">
-              <strong>{formatCurrency(deletingExpense.amount_cents)}</strong>
-              <span>{getCategoryName(deletingExpense.category_id)}</span>
-              <span>{formatDate(deletingExpense.occurred_at)}</span>
+          {deletingTransaction && (
+            <div className="delete-transaction-details">
+              <strong>{formatCurrency(deletingTransaction.amount_cents)}</strong>
+              <span>{getCategoryName(deletingTransaction.category_id)}</span>
+              <span>{formatDate(deletingTransaction.occurred_at)}</span>
             </div>
           )}
           <div className="delete-actions">

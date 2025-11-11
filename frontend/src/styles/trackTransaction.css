@@ -1,4 +1,4 @@
-.track-expense-page {
+.track-transaction-page {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1rem;
@@ -41,7 +41,7 @@
 
 /* Mobile adjustments */
 @media (max-width: 768px) {
-  .track-expense-page {
+  .track-transaction-page {
     padding: 1rem 0.5rem;
     gap: 1.5rem;
   }

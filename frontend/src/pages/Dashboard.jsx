@@ -1,4 +1,73 @@
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { listTransactions } from '../services/transactionService';
+import { listCategories } from '../services/categoryService';
+import { formatCurrency } from '../utils/currency';
+import { formatDate } from '../utils/date';
+
 function Dashboard() {
+  const { getToken } = useAuth();
+  const [recentIncome, setRecentIncome] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [totalIncome, setTotalIncome] = useState(0);
+
+  // Load categories and recent income on mount
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  /**
+   * Load categories and recent income for current month
+   */
+  async function loadDashboardData() {
+    try {
+      setLoading(true);
+      const token = getToken();
+
+      // Load categories
+      const cats = await listCategories(token);
+      setCategories(cats);
+
+      // Calculate current month date range
+      const now = new Date();
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+      // Fetch income for current month
+      const params = {
+        type: 'income',
+        start_date: firstDay.toISOString(),
+        end_date: lastDay.toISOString(),
+        page: 1,
+        limit: 5,
+        sort_by: 'occurred_at',
+        sort_order: 'desc',
+      };
+
+      const data = await listTransactions(params, token);
+      setRecentIncome(data.items || []);
+
+      // Calculate total income for current month
+      const total = (data.items || []).reduce((sum, item) => sum + item.amount_cents, 0);
+      setTotalIncome(total);
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /**
+   * Get category name by ID
+   */
+  function getCategoryName(categoryId) {
+    if (!categoryId) return 'Uncategorized';
+    const category = categories.find((c) => c.id === categoryId);
+    return category ? category.name : 'Unknown';
+  }
+
   return (
     <div className="wrap">
       {/* Left column (grid of cards) */}
@@ -94,17 +163,47 @@ function Dashboard() {
       {/* Right column (Income + Categories) */}
       <aside className="kpi" aria-label="Income and categories">
         <section className="panel" aria-labelledby="income-title">
-          <h2 id="income-title">Income</h2>
-          <ul className="list">
-            <li>
-              <span>Scholarship</span>
-              <strong>$1,200.00</strong>
-            </li>
-            <li>
-              <span>Part-time Job</span>
-              <strong>$600.00</strong>
-            </li>
-          </ul>
+          <h2 id="income-title">Income (This Month)</h2>
+
+          {loading ? (
+            <p className="muted">Loading income...</p>
+          ) : recentIncome.length === 0 ? (
+            <p className="muted">No income recorded this month.</p>
+          ) : (
+            <>
+              <ul className="list">
+                {recentIncome.map((income) => (
+                  <li key={income.id}>
+                    <span>
+                      {getCategoryName(income.category_id)}
+                      <br />
+                      <small className="muted">{formatDate(income.occurred_at)}</small>
+                    </span>
+                    <strong style={{ color: 'var(--success)' }}>
+                      {formatCurrency(income.amount_cents)}
+                    </strong>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="divider" style={{ margin: '1rem 0' }}></div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <strong>Total Income:</strong>
+                <strong style={{ color: 'var(--success)', fontSize: '1.2rem' }}>
+                  {formatCurrency(totalIncome)}
+                </strong>
+              </div>
+
+              <Link
+                to="/track-income"
+                className="btn primary"
+                style={{ marginTop: '1rem', width: '100%', textAlign: 'center' }}
+              >
+                View All Income
+              </Link>
+            </>
+          )}
         </section>
 
         <section className="panel" aria-labelledby="cats-title">
