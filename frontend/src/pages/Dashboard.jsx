@@ -3,8 +3,12 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { listTransactions } from '../services/transactionService';
 import { listCategories } from '../services/categoryService';
+import { getSpendingByCategory, getTrendsByPeriod } from '../services/aggregationService';
 import { formatCurrency } from '../utils/currency';
 import { formatDate } from '../utils/date';
+import SpendingPieChart from '../components/charts/SpendingPieChart';
+import TrendsBarChart from '../components/charts/TrendsBarChart';
+import DashboardFilters from '../components/DashboardFilters';
 
 function Dashboard() {
   const { getToken } = useAuth();
@@ -13,11 +17,27 @@ function Dashboard() {
   const [expenseEnvelopes, setExpenseEnvelopes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalIncome, setTotalIncome] = useState(0);
+  
+  // Analytics data
+  const [spendingData, setSpendingData] = useState([]);
+  const [trendsData, setTrendsData] = useState([]);
+  const [chartsLoading, setChartsLoading] = useState(false);
+  const [filters, setFilters] = useState({
+    period: 'monthly',
+    startDate: '',
+    endDate: '',
+    categories: [],
+  });
 
   // Load categories and recent income on mount
   useEffect(() => {
     loadDashboardData();
   }, []);
+  
+  // Load analytics data when filters change
+  useEffect(() => {
+    loadAnalyticsData();
+  }, [filters]);
 
   /**
    * Load categories and recent income for current month
@@ -94,6 +114,51 @@ function Dashboard() {
     } finally {
       setLoading(false);
     }
+  }
+
+  /**
+   * Load analytics data (charts) based on current filters
+   */
+  async function loadAnalyticsData() {
+    try {
+      setChartsLoading(true);
+      const token = getToken();
+      
+      // Build params from filters
+      const params = {
+        period: filters.period,
+      };
+      
+      if (filters.startDate) {
+        params.startDate = new Date(filters.startDate).toISOString();
+      }
+      if (filters.endDate) {
+        params.endDate = new Date(filters.endDate).toISOString();
+      }
+      
+      // Load spending by category (expenses only)
+      const spendingResult = await getSpendingByCategory({
+        ...params,
+        type: 'expense',
+      }, token);
+      setSpendingData(spendingResult.aggregates || []);
+      
+      // Load trends data (both income and expenses for net savings calculation)
+      const trendsResult = await getTrendsByPeriod(params, token);
+      setTrendsData(trendsResult.aggregates || []);
+      
+    } catch (error) {
+      console.error('Failed to load analytics data:', error);
+    } finally {
+      setChartsLoading(false);
+    }
+  }
+
+  /**
+   * Handle filter changes from DashboardFilters component
+   */
+  function handleFiltersChange(newFilters) {
+    setFilters(newFilters);
   }
 
   /**
@@ -307,6 +372,51 @@ function Dashboard() {
           </Link>
         </section>
       </aside>
+
+      {/* Analytics/Insights Section */}
+      <section 
+        style={{ 
+          gridColumn: '1 / -1',
+          marginTop: '2rem',
+        }}
+        aria-label="Budget analytics and insights"
+      >
+        <h2 style={{ marginBottom: '1rem' }}>Budget Insights</h2>
+        
+        {/* Filters */}
+        <DashboardFilters 
+          onFiltersChange={handleFiltersChange}
+          initialFilters={filters}
+        />
+
+        {/* Charts Grid */}
+        <div className="grid grid-cols-2" style={{ gap: '1.5rem' }}>
+          {/* Spending Breakdown Pie Chart */}
+          <article className="card" aria-labelledby="spending-chart-title">
+            <h3 id="spending-chart-title" style={{ marginBottom: '1rem' }}>
+              Spending by Category
+            </h3>
+            <SpendingPieChart 
+              data={spendingData}
+              loading={chartsLoading}
+              emptyMessage="No spending data for selected period"
+            />
+          </article>
+
+          {/* Trends Bar Chart */}
+          <article className="card" aria-labelledby="trends-chart-title">
+            <h3 id="trends-chart-title" style={{ marginBottom: '1rem' }}>
+              Spending & Savings Trends
+            </h3>
+            <TrendsBarChart 
+              data={trendsData}
+              period={filters.period}
+              loading={chartsLoading}
+              emptyMessage="No trend data for selected period"
+            />
+          </article>
+        </div>
+      </section>
     </div>
   );
 }

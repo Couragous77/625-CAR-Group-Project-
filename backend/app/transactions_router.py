@@ -1,10 +1,11 @@
 """Transaction CRUD endpoints for income and expense management."""
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from . import models, schemas
@@ -227,3 +228,148 @@ def delete_transaction(
     db.commit()
 
     return None
+
+
+@router.get("/aggregates")
+def get_transaction_aggregates(
+    group_by: str = Query("category", pattern="^(category|period)$"),
+    period: str = Query("monthly", pattern="^(weekly|monthly|yearly)$"),
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None,
+    type: Optional[str] = Query(None, pattern="^(income|expense)$"),
+    category_id: Optional[UUID] = None,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """
+    Aggregate transactions by category or time period.
+
+    - **group_by**: 'category' or 'period'
+    - **period**: 'weekly', 'monthly', or 'yearly' (used when group_by='period')
+    - **start_date**: Filter transactions from this date
+    - **end_date**: Filter transactions until this date
+    - **type**: Filter by 'income' or 'expense'
+    - **category_id**: Filter by specific category
+
+    Returns aggregated data with totals and metadata.
+    """
+
+    # Base query - users see only their own transactions
+    query = db.query(models.Transaction)
+    if current_user.role != "admin":
+        query = query.filter(models.Transaction.user_id == current_user.id)
+
+    # Apply filters
+    if type:
+        query = query.filter(models.Transaction.type == type)
+
+    if category_id:
+        query = query.filter(models.Transaction.category_id == category_id)
+
+    if start_date:
+        query = query.filter(models.Transaction.occurred_at >= start_date)
+
+    if end_date:
+        query = query.filter(models.Transaction.occurred_at <= end_date)
+
+    # Aggregate by category
+    if group_by == "category":
+        results = (
+            query.with_entities(
+                models.Transaction.category_id,
+                models.Transaction.type,
+                func.sum(models.Transaction.amount_cents).label("total_cents"),
+                func.count(models.Transaction.id).label("count"),
+            )
+            .group_by(models.Transaction.category_id, models.Transaction.type)
+            .all()
+        )
+
+        # Fetch category details and format response
+        aggregates = []
+        for row in results:
+            category = None
+            if row.category_id:
+                category = (
+                    db.query(models.Category)
+                    .filter(models.Category.id == row.category_id)
+                    .first()
+                )
+
+            aggregates.append(
+                {
+                    "category_id": str(row.category_id) if row.category_id else None,
+                    "category_name": category.name if category else "Uncategorized",
+                    "type": row.type,
+                    "total_cents": row.total_cents or 0,
+                    "count": row.count,
+                }
+            )
+
+        return {
+            "group_by": "category",
+            "period": period,
+            "aggregates": aggregates,
+        }
+
+    # Aggregate by time period
+    else:  # group_by == "period"
+        # Determine the date truncation based on period
+        if period == "weekly":
+            # PostgreSQL: date_trunc('week', occurred_at)
+            # SQLite: strftime('%Y-%W', occurred_at) - but we'll use PostgreSQL
+            date_group = func.date_trunc("week", models.Transaction.occurred_at)
+        elif period == "monthly":
+            date_group = func.date_trunc("month", models.Transaction.occurred_at)
+        else:  # yearly
+            date_group = func.date_trunc("year", models.Transaction.occurred_at)
+
+        # Query with date grouping
+        results = (
+            query.with_entities(
+                date_group.label("period_start"),
+                models.Transaction.type,
+                func.sum(models.Transaction.amount_cents).label("total_cents"),
+                func.count(models.Transaction.id).label("count"),
+            )
+            .group_by("period_start", models.Transaction.type)
+            .order_by("period_start")
+            .all()
+        )
+
+        # Format response with period labels
+        aggregates = []
+        for row in results:
+            period_start = row.period_start
+
+            # Calculate period end based on period type
+            if period == "weekly":
+                period_end = period_start + timedelta(days=6)
+            elif period == "monthly":
+                # Last day of month
+                if period_start.month == 12:
+                    period_end = datetime(period_start.year + 1, 1, 1) - timedelta(
+                        days=1
+                    )
+                else:
+                    period_end = datetime(
+                        period_start.year, period_start.month + 1, 1
+                    ) - timedelta(days=1)
+            else:  # yearly
+                period_end = datetime(period_start.year, 12, 31)
+
+            aggregates.append(
+                {
+                    "period_start": period_start.isoformat(),
+                    "period_end": period_end.isoformat() if period_end else None,
+                    "type": row.type,
+                    "total_cents": row.total_cents or 0,
+                    "count": row.count,
+                }
+            )
+
+        return {
+            "group_by": "period",
+            "period": period,
+            "aggregates": aggregates,
+        }
