@@ -168,19 +168,19 @@ function Register() {
     }
 
     try {
-      // Simulate network delay for loading state
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      // Mock registration
-      register({
+      // Call real API through AuthContext
+      await register({
         email: formData.email,
+        password: formData.password,
         firstName: formData.firstName,
         lastName: formData.lastName,
-        avatar: null
       });
+      
+      // Navigate to dashboard on success
       navigate('/dashboard');
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      console.error('Registration error:', err);
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { loginUser, registerUser, getCurrentUser } from '../services/authService';
 
 const AuthContext = createContext(null);
 
@@ -6,21 +7,7 @@ const AuthContext = createContext(null);
 const TOKEN_KEY = 'budget_car_token';
 const USER_KEY = 'budget_car_user';
 
-// Mock JWT token generation (for development)
-function generateMockToken(userData) {
-  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-  const payload = btoa(JSON.stringify({
-    sub: userData.email,
-    name: `${userData.firstName} ${userData.lastName}`,
-    email: userData.email,
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours from now
-  }));
-  const signature = btoa('mock-signature');
-  return `${header}.${payload}.${signature}`;
-}
-
-// Decode JWT payload (works with both mock and real tokens)
+// Decode JWT payload
 function decodeToken(token) {
   try {
     const payload = token.split('.')[1];
@@ -44,14 +31,26 @@ export function AuthProvider({ children }) {
 
   // Initialize auth state from localStorage on mount
   useEffect(() => {
-    const initializeAuth = () => {
+    const initializeAuth = async () => {
       const token = localStorage.getItem(TOKEN_KEY);
       const storedUser = localStorage.getItem(USER_KEY);
 
-      if (token && storedUser && !isTokenExpired(token)) {
-        // Valid token exists, restore auth state
-        setIsAuthenticated(true);
-        setUser(JSON.parse(storedUser));
+      if (token && !isTokenExpired(token)) {
+        try {
+          // Fetch fresh user data from API
+          const userData = await getCurrentUser(token);
+          setIsAuthenticated(true);
+          setUser(userData);
+          // Update stored user data
+          localStorage.setItem(USER_KEY, JSON.stringify(userData));
+        } catch (error) {
+          console.error('Failed to fetch user data:', error);
+          // Token might be invalid, clear auth state
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(USER_KEY);
+          setIsAuthenticated(false);
+          setUser(null);
+        }
       } else {
         // No valid token, clear any stale data
         localStorage.removeItem(TOKEN_KEY);
@@ -64,39 +63,36 @@ export function AuthProvider({ children }) {
     initializeAuth();
   }, []);
 
-  const login = (userData) => {
-    // TODO: Replace with actual API call to POST /api/auth/login
-    // const response = await fetch('/api/auth/login', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ email, password })
-    // });
-    // const { token, user } = await response.json();
+  const login = async ({ email, password }) => {
+    try {
+      // Call real API
+      const response = await loginUser({ email, password });
+      const token = response.access_token;
 
-    // Mock login - generate fake JWT token
-    const mockToken = generateMockToken(userData);
-    const userToStore = userData || {
-      email: 'user@school.edu',
-      firstName: 'Budget',
-      lastName: 'CAR',
-      avatar: null
-    };
+      if (!token) {
+        throw new Error('No token returned from server');
+      }
 
-    // Store token and user in localStorage
-    localStorage.setItem(TOKEN_KEY, mockToken);
-    localStorage.setItem(USER_KEY, JSON.stringify(userToStore));
+      // Store token
+      localStorage.setItem(TOKEN_KEY, token);
 
-    setIsAuthenticated(true);
-    setUser(userToStore);
+      // Fetch user profile
+      const userData = await getCurrentUser(token);
+      
+      // Store user data
+      localStorage.setItem(USER_KEY, JSON.stringify(userData));
+
+      setIsAuthenticated(true);
+      setUser(userData);
+    } catch (error) {
+      // Clear any stale data
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      throw error; // Re-throw so Login component can handle it
+    }
   };
 
   const logout = () => {
-    // TODO: Optionally call backend to invalidate token
-    // await fetch('/api/auth/logout', {
-    //   method: 'POST',
-    //   headers: { Authorization: `Bearer ${token}` }
-    // });
-
     // Clear token and user from localStorage
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
@@ -105,24 +101,24 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
-  const register = (userData) => {
-    // TODO: Replace with actual API call to POST /api/auth/register
-    // const response = await fetch('/api/auth/register', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(userData)
-    // });
-    // const { token, user } = await response.json();
+  const register = async ({ email, password, firstName, lastName }) => {
+    try {
+      // Call real API - register endpoint
+      await registerUser({
+        email,
+        password,
+        first_name: firstName,
+        last_name: lastName,
+      });
 
-    // Mock register - generate fake JWT token
-    const mockToken = generateMockToken(userData);
-
-    // Store token and user in localStorage
-    localStorage.setItem(TOKEN_KEY, mockToken);
-    localStorage.setItem(USER_KEY, JSON.stringify(userData));
-
-    setIsAuthenticated(true);
-    setUser(userData);
+      // After successful registration, log the user in
+      await login({ email, password });
+    } catch (error) {
+      // Clear any stale data
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      throw error; // Re-throw so Register component can handle it
+    }
   };
 
   const getToken = () => {

@@ -7,6 +7,7 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import TrackExpense from './pages/TrackExpense';
 import TrackIncome from './pages/TrackIncome';
@@ -89,6 +90,14 @@ function AppRoutes() {
         element={
           <PublicRoute>
             <ForgotPassword />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <PublicRoute>
+            <ResetPassword />
           </PublicRoute>
         }
       />

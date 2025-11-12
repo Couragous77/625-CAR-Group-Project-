@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { requestPasswordReset } from '../services/authService';
 import Logo from '../components/Logo';
 
 export default function ForgotPassword() {
@@ -29,20 +30,14 @@ export default function ForgotPassword() {
     }
 
     try {
-      // TODO: Replace with actual API call to the FastAPI backend
-      // const response = await fetch('/api/auth/forgot-password', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email })
-      // });
-
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      // For now, simulate success
+      // Call real API
+      await requestPasswordReset(email);
+      
+      // Show success message
       setSubmitted(true);
     } catch (err) {
-      setError('Something went wrong. Please try again.');
+      console.error('Password reset error:', err);
+      setError(err.message || 'Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }
