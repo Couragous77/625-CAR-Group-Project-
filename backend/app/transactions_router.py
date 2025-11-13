@@ -1,7 +1,7 @@
 """Transaction CRUD endpoints for income and expense management."""
 
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -130,106 +130,6 @@ def list_transactions(
     ]
 
 
-@router.get("/{transaction_id}", response_model=schemas.TransactionOut)
-def get_transaction(
-    transaction_id: UUID,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
-):
-    """Get a single transaction by ID."""
-
-    # Base query
-    query = db.query(models.Transaction).filter(models.Transaction.id == transaction_id)
-
-    # Users can only see their own, admins see all
-    if current_user.role != "admin":
-        query = query.filter(models.Transaction.user_id == current_user.id)
-
-    transaction = query.first()
-    if not transaction:
-        raise HTTPException(status_code=404, detail="Transaction not found")
-
-    return schemas.TransactionOut.model_validate(transaction, from_attributes=True)
-
-
-@router.put("/{transaction_id}", response_model=schemas.TransactionOut)
-def update_transaction(
-    transaction_id: UUID,
-    body: schemas.TransactionCreate,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
-):
-    """Update a transaction (full replacement)."""
-
-    # Find transaction (users can only update their own)
-    query = db.query(models.Transaction).filter(models.Transaction.id == transaction_id)
-    if current_user.role != "admin":
-        query = query.filter(models.Transaction.user_id == current_user.id)
-
-    transaction = query.first()
-    if not transaction:
-        raise HTTPException(status_code=404, detail="Transaction not found")
-
-    # Validate: no future dates
-    occurred_at = body.occurred_at or datetime.now(timezone.utc)
-    if occurred_at > datetime.now(timezone.utc):
-        raise HTTPException(
-            status_code=400, detail="Transaction date cannot be in the future"
-        )
-
-    # Validate: category belongs to user (if provided)
-    if body.category_id:
-        category = (
-            db.query(models.Category)
-            .filter(
-                models.Category.id == body.category_id,
-                models.Category.user_id == current_user.id,
-            )
-            .first()
-        )
-        if not category:
-            raise HTTPException(
-                status_code=404, detail="Category not found or does not belong to user"
-            )
-
-    # Update fields
-    transaction.category_id = body.category_id
-    transaction.type = body.type
-    transaction.amount_cents = body.amount_cents
-    transaction.occurred_at = occurred_at
-    transaction.description = body.description
-    transaction.receipt_url = body.receipt_url
-    transaction.metadata_ = body.metadata_
-
-    db.commit()
-    db.refresh(transaction)
-
-    return schemas.TransactionOut.model_validate(transaction, from_attributes=True)
-
-
-@router.delete("/{transaction_id}", status_code=204)
-def delete_transaction(
-    transaction_id: UUID,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
-):
-    """Delete a transaction."""
-
-    # Find transaction (users can only delete their own)
-    query = db.query(models.Transaction).filter(models.Transaction.id == transaction_id)
-    if current_user.role != "admin":
-        query = query.filter(models.Transaction.user_id == current_user.id)
-
-    transaction = query.first()
-    if not transaction:
-        raise HTTPException(status_code=404, detail="Transaction not found")
-
-    db.delete(transaction)
-    db.commit()
-
-    return None
-
-
 @router.get("/aggregates")
 def get_transaction_aggregates(
     group_by: str = Query("category", pattern="^(category|period)$"),
@@ -237,7 +137,7 @@ def get_transaction_aggregates(
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
     type: Optional[str] = Query(None, pattern="^(income|expense)$"),
-    category_id: Optional[UUID] = None,
+    category_ids: Optional[List[UUID]] = Query(None, alias="category_ids[]"),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
@@ -249,7 +149,7 @@ def get_transaction_aggregates(
     - **start_date**: Filter transactions from this date
     - **end_date**: Filter transactions until this date
     - **type**: Filter by 'income' or 'expense'
-    - **category_id**: Filter by specific category
+    - **category_ids[]**: Filter by specific categories (can pass multiple)
 
     Returns aggregated data with totals and metadata.
     """
@@ -263,8 +163,8 @@ def get_transaction_aggregates(
     if type:
         query = query.filter(models.Transaction.type == type)
 
-    if category_id:
-        query = query.filter(models.Transaction.category_id == category_id)
+    if category_ids:
+        query = query.filter(models.Transaction.category_id.in_(category_ids))
 
     if start_date:
         query = query.filter(models.Transaction.occurred_at >= start_date)
@@ -373,3 +273,103 @@ def get_transaction_aggregates(
             "period": period,
             "aggregates": aggregates,
         }
+
+
+@router.get("/{transaction_id}", response_model=schemas.TransactionOut)
+def get_transaction(
+    transaction_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Get a single transaction by ID."""
+
+    # Base query
+    query = db.query(models.Transaction).filter(models.Transaction.id == transaction_id)
+
+    # Users can only see their own, admins see all
+    if current_user.role != "admin":
+        query = query.filter(models.Transaction.user_id == current_user.id)
+
+    transaction = query.first()
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    return schemas.TransactionOut.model_validate(transaction, from_attributes=True)
+
+
+@router.put("/{transaction_id}", response_model=schemas.TransactionOut)
+def update_transaction(
+    transaction_id: UUID,
+    body: schemas.TransactionCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Update a transaction (full replacement)."""
+
+    # Find transaction (users can only update their own)
+    query = db.query(models.Transaction).filter(models.Transaction.id == transaction_id)
+    if current_user.role != "admin":
+        query = query.filter(models.Transaction.user_id == current_user.id)
+
+    transaction = query.first()
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    # Validate: no future dates
+    occurred_at = body.occurred_at or datetime.now(timezone.utc)
+    if occurred_at > datetime.now(timezone.utc):
+        raise HTTPException(
+            status_code=400, detail="Transaction date cannot be in the future"
+        )
+
+    # Validate: category belongs to user (if provided)
+    if body.category_id:
+        category = (
+            db.query(models.Category)
+            .filter(
+                models.Category.id == body.category_id,
+                models.Category.user_id == current_user.id,
+            )
+            .first()
+        )
+        if not category:
+            raise HTTPException(
+                status_code=404, detail="Category not found or does not belong to user"
+            )
+
+    # Update fields
+    transaction.category_id = body.category_id
+    transaction.type = body.type
+    transaction.amount_cents = body.amount_cents
+    transaction.occurred_at = occurred_at
+    transaction.description = body.description
+    transaction.receipt_url = body.receipt_url
+    transaction.metadata_ = body.metadata_
+
+    db.commit()
+    db.refresh(transaction)
+
+    return schemas.TransactionOut.model_validate(transaction, from_attributes=True)
+
+
+@router.delete("/{transaction_id}", status_code=204)
+def delete_transaction(
+    transaction_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Delete a transaction."""
+
+    # Find transaction (users can only delete their own)
+    query = db.query(models.Transaction).filter(models.Transaction.id == transaction_id)
+    if current_user.role != "admin":
+        query = query.filter(models.Transaction.user_id == current_user.id)
+
+    transaction = query.first()
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    db.delete(transaction)
+    db.commit()
+
+    return None

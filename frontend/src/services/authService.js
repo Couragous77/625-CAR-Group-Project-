@@ -13,7 +13,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
  * @param {string} userData.password - User password
  * @param {string} userData.first_name - User first name
  * @param {string} userData.last_name - User last name
- * @returns {Promise<Object>} Registration response
+ * @returns {Promise<Object>} Registration response with tokens
  */
 export async function registerUser({ email, password, first_name, last_name }) {
   const response = await fetch(`${API_BASE_URL}/api/register`, {
@@ -31,7 +31,8 @@ export async function registerUser({ email, password, first_name, last_name }) {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Registration failed' }));
-    throw new Error(error.detail || 'Registration failed');
+    const errorMessage = error.detail || 'Registration failed';
+    throw new Error(errorMessage);
   }
 
   return response.json();

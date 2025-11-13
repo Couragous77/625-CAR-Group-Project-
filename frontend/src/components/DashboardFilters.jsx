@@ -28,7 +28,9 @@ export default function DashboardFilters({ onFiltersChange, initialFilters = {} 
     try {
       const token = getToken();
       const cats = await listCategories(token);
-      setCategories(cats);
+      // Only show expense categories since the spending chart filters by expense type
+      const expenseCategories = cats.filter(cat => cat.type === 'expense');
+      setCategories(expenseCategories);
     } catch (error) {
       console.error('Failed to load categories:', error);
     }

@@ -45,6 +45,7 @@ export function AuthProvider({ children }) {
           localStorage.setItem(USER_KEY, JSON.stringify(userData));
         } catch (error) {
           console.error('Failed to fetch user data:', error);
+          console.error('Error details:', error.message);
           // Token might be invalid, clear auth state
           localStorage.removeItem(TOKEN_KEY);
           localStorage.removeItem(USER_KEY);
@@ -103,16 +104,32 @@ export function AuthProvider({ children }) {
 
   const register = async ({ email, password, firstName, lastName }) => {
     try {
-      // Call real API - register endpoint
-      await registerUser({
+      // Call real API - register endpoint (returns tokens directly)
+      const response = await registerUser({
         email,
         password,
         first_name: firstName,
         last_name: lastName,
       });
 
-      // After successful registration, log the user in
-      await login({ email, password });
+      // Extract token from registration response
+      const token = response.access_token;
+
+      if (!token) {
+        throw new Error('No token returned from server');
+      }
+
+      // Store token
+      localStorage.setItem(TOKEN_KEY, token);
+
+      // Fetch user profile using the token
+      const userData = await getCurrentUser(token);
+      
+      // Store user data
+      localStorage.setItem(USER_KEY, JSON.stringify(userData));
+
+      setIsAuthenticated(true);
+      setUser(userData);
     } catch (error) {
       // Clear any stale data
       localStorage.removeItem(TOKEN_KEY);

@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from . import schemas
 from .config import settings
 from .db import get_db
+from .deps import get_current_user
 from .models import Session as SessionModel
 from .models import User
 from .security import (
@@ -130,4 +131,25 @@ def login(
         access_token=access_token,
         refresh_token=refresh_val,
         expires_in=expires_in,
+    )
+
+
+@router.get("/me", response_model=schemas.UserResponse)
+def get_current_user_profile(
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    """Get the current authenticated user's profile.
+
+    Args:
+        current_user: The authenticated user from the JWT token
+
+    Returns:
+        UserResponse with user profile information
+    """
+    return schemas.UserResponse(
+        id=current_user.id,
+        email=current_user.email,
+        first_name=current_user.first_name,
+        last_name=current_user.last_name,
+        role=current_user.role,
     )

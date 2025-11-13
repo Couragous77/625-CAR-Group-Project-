@@ -73,12 +73,17 @@ export default function TransactionList({ refreshKey = 0, transactionType = 'exp
       if (maxAmount) params.max_amount = Math.round(parseFloat(maxAmount) * 100);
       
       const response = await listTransactions(params, token);
-      setTransactions(response.items || []);
+      
+      // Backend returns a simple array, not a paginated object
+      const transactionList = Array.isArray(response) ? response : (response.items || []);
+      setTransactions(transactionList);
+      
+      // Since backend doesn't provide pagination info, we'll work with what we have
       setPagination({
-        page: response.page,
-        limit: response.limit,
-        total: response.total,
-        totalPages: response.total_pages,
+        page: page,
+        limit: limit,
+        total: transactionList.length,
+        totalPages: 1, // We don't have this info from backend
       });
     } catch (error) {
       toast.error(error.message || `Failed to load ${transactionType === 'income' ? 'income' : 'expenses'}`);

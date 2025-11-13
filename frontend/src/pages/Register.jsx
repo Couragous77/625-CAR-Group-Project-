@@ -180,7 +180,26 @@ function Register() {
       navigate('/dashboard');
     } catch (err) {
       console.error('Registration error:', err);
-      setError(err.message || 'Registration failed. Please try again.');
+      
+      // Handle specific error cases
+      let errorMessage = 'Registration failed. Please try again.';
+      
+      if (err.message) {
+        if (err.message.includes('already registered') || err.message.includes('Email already')) {
+          errorMessage = 'This email is already registered. Please log in or use a different email.';
+        } else if (err.message.includes('Invalid email')) {
+          errorMessage = 'Please enter a valid email address.';
+        } else if (err.message.includes('Password')) {
+          errorMessage = err.message;
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(errorMessage);
+      
+      // Scroll to top to show error
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setIsLoading(false);
     }
@@ -205,9 +224,24 @@ function Register() {
         <section className="panel" aria-labelledby="createTitle">
           <h2 id="createTitle" style={{ marginTop: 0 }}>Create account</h2>
 
+          {/* Error message display */}
           {error && (
-            <div className="error" role="alert">
-              {error}
+            <div style={{ 
+              backgroundColor: '#fee2e2', 
+              border: '1px solid #fca5a5', 
+              padding: '0.75rem 1rem', 
+              borderRadius: '0.5rem',
+              marginBottom: '1rem',
+              color: '#991b1b',
+              fontSize: '0.875rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }} role="alert">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <span>{error}</span>
             </div>
           )}
 

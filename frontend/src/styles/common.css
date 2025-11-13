@@ -169,9 +169,17 @@ p {
     grid-template-columns: 1fr;
 }
 
+.grid-cols-3 {
+    grid-template-columns: 1fr;
+}
+
 @media (min-width: 960px) {
     .grid-cols-2 {
         grid-template-columns: 1fr 1fr;
+    }
+    
+    .grid-cols-3 {
+        grid-template-columns: 1fr 1fr 1fr;
     }
 }
 

@@ -20,6 +20,22 @@ export function formatDate(date) {
 }
 
 /**
+ * Format date as "Jan 7" (no year) - for recent dates
+ * @param {string|Date} date - Date to format
+ * @returns {string} - Formatted date without year
+ */
+export function formatDateShort(date) {
+  if (!date) return '';
+  
+  const d = typeof date === 'string' ? new Date(date) : date;
+  
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+/**
  * Get today's date in YYYY-MM-DD format (for input[type="date"])
  * @returns {string} - Today's date
  */

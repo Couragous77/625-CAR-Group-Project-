@@ -62,8 +62,21 @@ class UserCreate(BaseModel):
     last_name: Optional[str] = None
 
 
+class UserResponse(BaseModel):
+    """Schema for simplified user profile response."""
+
+    id: UUID
+    email: EmailStr
+    first_name: Optional[str]
+    last_name: Optional[str]
+    role: str
+
+    class Config:
+        from_attributes = True
+
+
 class UserOut(BaseModel):
-    """Schema for user response."""
+    """Schema for detailed user response."""
 
     id: UUID
     email: EmailStr

@@ -14,7 +14,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
  * @param {string} params.startDate - ISO date string
  * @param {string} params.endDate - ISO date string
  * @param {string} params.type - 'income' or 'expense'
- * @param {string} params.categoryId - UUID of category
+ * @param {Array<string>} params.categoryIds - Array of category UUIDs
  * @param {string} token - JWT token
  * @returns {Promise<Object>} Aggregated data
  */
@@ -26,7 +26,13 @@ export async function getAggregates(params = {}, token) {
   if (params.startDate) queryParams.append('start_date', params.startDate);
   if (params.endDate) queryParams.append('end_date', params.endDate);
   if (params.type) queryParams.append('type', params.type);
-  if (params.categoryId) queryParams.append('category_id', params.categoryId);
+  
+  // Handle multiple category IDs
+  if (params.categoryIds && Array.isArray(params.categoryIds)) {
+    params.categoryIds.forEach(id => {
+      queryParams.append('category_ids[]', id);
+    });
+  }
 
   const response = await fetch(
     `${API_BASE_URL}/api/transactions/aggregates?${queryParams.toString()}`,
@@ -41,7 +47,18 @@ export async function getAggregates(params = {}, token) {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Failed to fetch aggregates' }));
-    throw new Error(error.detail || 'Failed to fetch aggregates');
+    
+    // Handle validation errors (422)
+    if (response.status === 422 && error.detail) {
+      // FastAPI validation errors come as an array
+      if (Array.isArray(error.detail)) {
+        const messages = error.detail.map(err => `${err.loc?.join('.')}: ${err.msg}`).join(', ');
+        throw new Error(`Validation error: ${messages}`);
+      }
+      throw new Error(error.detail);
+    }
+    
+    throw new Error(error.detail || `Failed to fetch aggregates (${response.status})`);
   }
 
   return response.json();

@@ -22,7 +22,7 @@ export default function ForgotPassword() {
       setIsLoading(false);
       return;
     }
-    
+
     if (!email.includes('@')) {
       setFieldError('Please enter a valid email address');
       setIsLoading(false);
@@ -32,7 +32,7 @@ export default function ForgotPassword() {
     try {
       // Call real API
       await requestPasswordReset(email);
-      
+
       // Show success message
       setSubmitted(true);
     } catch (err) {
@@ -61,7 +61,7 @@ export default function ForgotPassword() {
           </div>
           <h1>Reset your password</h1>
           <p>
-            Don't worry! It happens to the best of us. Enter your email 
+            Don't worry! It happens to the best of us. Enter your email
             address and we'll send you instructions to reset your password.
           </p>
           <div className="perk">
@@ -141,26 +141,26 @@ export default function ForgotPassword() {
           ) : (
             <>
               <div className="success-message">
-                <svg 
-                  width="64" 
-                  height="64" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
+                <svg
+                  width="64"
+                  height="64"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
                   strokeWidth="2"
                   style={{ color: 'var(--good)', margin: '0 auto 1rem' }}
                 >
                   <circle cx="12" cy="12" r="10" />
                   <path d="M9 12l2 2 4-4" />
                 </svg>
-                
+
                 <h2 style={{ marginTop: 0 }}>Check Your Email</h2>
                 <p className="hint" style={{ fontSize: '1rem', lineHeight: '1.6' }}>
                   We've sent password reset instructions to <strong>{email}</strong>
                 </p>
                 <p className="hint" style={{ fontSize: '0.95rem', marginTop: '1rem' }}>
                   Didn't receive the email? Check your spam folder or{' '}
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setSubmitted(false)}
                     style={{
