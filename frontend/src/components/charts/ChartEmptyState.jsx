@@ -27,7 +27,17 @@ export default function ChartEmptyState({ loading = false, message = 'No data av
 
   // Default icon if none provided
   const defaultIcon = (
-    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#9ca3af' }}>
+    <svg 
+      width="64" 
+      height="64" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      style={{ color: '#9ca3af' }}
+      role="img"
+      aria-label="No data icon"
+    >
       <circle cx="12" cy="12" r="10" />
       <line x1="12" y1="8" x2="12" y2="12" />
       <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -35,7 +45,7 @@ export default function ChartEmptyState({ loading = false, message = 'No data av
   );
 
   return (
-    <div style={containerStyle}>
+    <div style={containerStyle} role="status" aria-live="polite">
       {icon || defaultIcon}
       <p className="muted">{message}</p>
     </div>

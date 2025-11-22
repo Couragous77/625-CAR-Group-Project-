@@ -396,13 +396,20 @@ function Dashboard() {
                     </div>
 
                     {/* Progress bar */}
-                    <div style={{
-                      width: '100%',
-                      height: '6px',
-                      backgroundColor: '#e5e7eb',
-                      borderRadius: '3px',
-                      overflow: 'hidden'
-                    }}>
+                    <div 
+                      role="progressbar"
+                      aria-valuenow={Math.round(envelope.percentage)}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-label={`${envelope.name} budget: ${Math.round(envelope.percentage)}% used`}
+                      style={{
+                        width: '100%',
+                        height: '6px',
+                        backgroundColor: '#e5e7eb',
+                        borderRadius: '3px',
+                        overflow: 'hidden'
+                      }}
+                    >
                       <div style={{
                         width: `${envelope.percentage}%`,
                         height: '100%',
@@ -502,7 +509,13 @@ function Dashboard() {
                 disabled={submittingExpense}
               />
             </div>
-            <button className="btn primary" type="submit" disabled={submittingExpense}>
+            <button 
+              className="btn primary" 
+              type="submit" 
+              disabled={submittingExpense}
+              aria-disabled={submittingExpense}
+              aria-label={submittingExpense ? 'Adding expense' : 'Add expense'}
+            >
               {submittingExpense ? 'Adding...' : 'Add Expense'}
             </button>
           </form>

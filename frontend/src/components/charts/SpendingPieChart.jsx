@@ -54,7 +54,14 @@ export default function SpendingPieChart({ data = [], loading = false, emptyMess
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <PieChart>
+      <PieChart 
+        role="img"
+        aria-label="Spending by category pie chart"
+        aria-describedby="pie-chart-desc"
+      >
+        <title id="pie-chart-desc">
+          Pie chart showing spending distribution across {chartData.length} categories
+        </title>
         <Pie
           data={chartData}
           cx="50%"

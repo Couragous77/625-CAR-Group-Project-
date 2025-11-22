@@ -106,7 +106,17 @@ export default function TrendsBarChart({
 
   if (loading || !chartData || chartData.length === 0) {
     const icon = (
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#9ca3af' }}>
+      <svg 
+        width="64" 
+        height="64" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="2" 
+        style={{ color: '#9ca3af' }}
+        role="img"
+        aria-label="Bar chart icon"
+      >
         <line x1="12" y1="20" x2="12" y2="10" />
         <line x1="18" y1="20" x2="18" y2="4" />
         <line x1="6" y1="20" x2="6" y2="16" />
@@ -117,7 +127,16 @@ export default function TrendsBarChart({
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+      <BarChart 
+        data={chartData} 
+        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+        role="img"
+        aria-label="Spending and savings trends bar chart"
+        aria-describedby="bar-chart-desc"
+      >
+        <title id="bar-chart-desc">
+          Bar chart showing expenses and net savings across {chartData.length} {period} periods
+        </title>
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
         <XAxis 
           dataKey="period" 

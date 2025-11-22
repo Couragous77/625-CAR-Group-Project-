@@ -23,13 +23,13 @@ import './styles/common.css';
 // Protected Route wrapper
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
-  
+
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         minHeight: '100vh',
         fontSize: '1.25rem',
         color: 'var(--muted)'
@@ -38,20 +38,20 @@ function ProtectedRoute({ children }) {
       </div>
     );
   }
-  
+
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 }
 
 // Public Route wrapper (redirect if already authenticated)
 function PublicRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
-  
+
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         minHeight: '100vh',
         fontSize: '1.25rem',
         color: 'var(--muted)'
@@ -60,7 +60,7 @@ function PublicRoute({ children }) {
       </div>
     );
   }
-  
+
   return !isAuthenticated ? children : <Navigate to="/dashboard" replace />;
 }
 
