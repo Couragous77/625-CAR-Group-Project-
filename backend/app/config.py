@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     env: str = "dev"
 
     # Database
-    database_url: str
+    database_url: str = "postgresql://user:pass@localhost:5432/testdb"
 
     # CORS
     cors_origins: str = "*"

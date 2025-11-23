@@ -28,6 +28,7 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS}
     volumes:
       - ./backend:/app
+      - uploads:/app/uploads
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     depends_on:
@@ -53,3 +54,4 @@ services:
 
 volumes:
   pgdata:
+  uploads:

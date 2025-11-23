@@ -26,9 +26,13 @@
 
     /* Semantic Colors */
     --good: #2f8f5b;
+    --success: #22c55e;
     --warn: #e58a3b;
+    --warning: #f59e0b;
     --danger: #dc2626;
     --danger-100: #fdecec;
+    --primary: #3b82f6;
+    --info: #3b82f6;
 
     /* Borders & Dividers */
     --border: #e5e7eb;
@@ -165,9 +169,17 @@ p {
     grid-template-columns: 1fr;
 }
 
+.grid-cols-3 {
+    grid-template-columns: 1fr;
+}
+
 @media (min-width: 960px) {
     .grid-cols-2 {
         grid-template-columns: 1fr 1fr;
+    }
+    
+    .grid-cols-3 {
+        grid-template-columns: 1fr 1fr 1fr;
     }
 }
 

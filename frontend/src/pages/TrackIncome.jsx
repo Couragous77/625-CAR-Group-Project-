@@ -1,51 +1,39 @@
+import { useState } from 'react';
+import Layout from '../components/Layout';
+import TransactionForm from '../components/TransactionForm';
+import TransactionList from '../components/TransactionList';
+import '../styles/trackTransaction.css';
+
 function TrackIncome() {
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleSuccess = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+
   return (
-    <div className="form-container">
+    <div className="track-transaction-page">
+      <div className="page-header">
+        <h1>Income Tracker</h1>
+        <p className="subtitle">Manage your income sources and earnings</p>
+      </div>
+
+      {/* Add Income Form */}
       <section className="panel">
-        <h1>Track Income</h1>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            alert('Income tracking functionality coming soon!');
-          }}
-        >
-          <div className="field">
-            <label htmlFor="income-amount">Amount</label>
-            <input
-              id="income-amount"
-              type="number"
-              inputMode="decimal"
-              placeholder="e.g., 500.00"
-              required
-            />
-          </div>
+        <h2>Add New Income</h2>
+        <TransactionForm
+          transactionType="income"
+          onSuccess={handleSuccess}
+        />
+      </section>
 
-          <div className="field">
-            <label htmlFor="income-source">Source</label>
-            <select id="income-source" required>
-              <option value="" disabled>Select source</option>
-              <option>Scholarship</option>
-              <option>Part-time Job</option>
-              <option>Allowance</option>
-              <option>Freelance</option>
-              <option>Other</option>
-            </select>
-          </div>
-
-          <div className="field">
-            <label htmlFor="income-description">Description (optional)</label>
-            <input id="income-description" type="text" placeholder="e.g., Weekly paycheck" />
-          </div>
-
-          <div className="field">
-            <label htmlFor="income-date">Date</label>
-            <input id="income-date" type="date" required />
-          </div>
-
-          <button className="btn primary" type="submit">
-            Add Income
-          </button>
-        </form>
+      {/* Income List */}
+      <section className="panel">
+        <h2>Your Income</h2>
+        <TransactionList
+          transactionType="income"
+          refreshKey={refreshKey}
+        />
       </section>
     </div>
   );

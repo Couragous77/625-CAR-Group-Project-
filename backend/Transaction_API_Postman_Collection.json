@@ -1,0 +1,929 @@
+{
+	"info": {
+		"_postman_id": "transaction-api-collection",
+		"name": "Transaction API - Complete Collection",
+		"description": "Complete API collection for testing Transaction CRUD endpoints with authentication, filtering, and file uploads.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "transaction_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "receipt_filename",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login - Courage (Student)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has access_token\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('access_token');",
+									"    pm.collectionVariables.set(\"access_token\", jsonData.access_token);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"courage@example.com\",\n  \"password\": \"courage\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "login"]
+						},
+						"description": "Login as courage (student user) and save access token"
+					},
+					"response": []
+				},
+				{
+					"name": "Login - Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has access_token\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('access_token');",
+									"    pm.collectionVariables.set(\"access_token\", jsonData.access_token);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "login"]
+						},
+						"description": "Login as admin and save access token"
+					},
+					"response": []
+				},
+				{
+					"name": "Health Check",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": ["{{base_url}}"],
+							"path": ["health"]
+						},
+						"description": "Check if backend is running"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Transactions - CRUD",
+			"item": [
+				{
+					"name": "Create Expense Transaction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has transaction id\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.collectionVariables.set(\"transaction_id\", jsonData.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"expense\",\n  \"amount_cents\": 2500,\n  \"category_id\": \"55555555-5555-5555-5555-555555555555\",\n  \"description\": \"Coffee and snacks\",\n  \"occurred_at\": \"2024-11-04T10:30:00Z\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/transactions",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions"]
+						},
+						"description": "Create a new expense transaction"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Income Transaction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"income\",\n  \"amount_cents\": 150000,\n  \"description\": \"Freelance payment\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/transactions",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions"]
+						},
+						"description": "Create a new income transaction without category"
+					},
+					"response": []
+				},
+				{
+					"name": "List All Transactions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is an array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions"]
+						},
+						"description": "Get all transactions for the current user"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single Transaction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has transaction fields\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('type');",
+									"    pm.expect(jsonData).to.have.property('amount_cents');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions/{{transaction_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions", "{{transaction_id}}"]
+						},
+						"description": "Get a specific transaction by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Transaction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Amount was updated\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.amount_cents).to.eql(3000);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"expense\",\n  \"amount_cents\": 3000,\n  \"category_id\": \"55555555-5555-5555-5555-555555555555\",\n  \"description\": \"Coffee, snacks, and tip\",\n  \"occurred_at\": \"2024-11-04T10:30:00Z\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/transactions/{{transaction_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions", "{{transaction_id}}"]
+						},
+						"description": "Update an existing transaction"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Transaction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions/{{transaction_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions", "{{transaction_id}}"]
+						},
+						"description": "Delete a transaction permanently"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Transactions - Filtering",
+			"item": [
+				{
+					"name": "Filter by Type - Expenses Only",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions?type=expense&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions"],
+							"query": [
+								{
+									"key": "type",
+									"value": "expense"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get only expense transactions"
+					},
+					"response": []
+				},
+				{
+					"name": "Filter by Type - Income Only",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions?type=income&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions"],
+							"query": [
+								{
+									"key": "type",
+									"value": "income"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get only income transactions"
+					},
+					"response": []
+				},
+				{
+					"name": "Filter by Category",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions?category_id=55555555-5555-5555-5555-555555555555",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions"],
+							"query": [
+								{
+									"key": "category_id",
+									"value": "55555555-5555-5555-5555-555555555555",
+									"description": "Groceries category"
+								}
+							]
+						},
+						"description": "Filter transactions by category (Groceries)"
+					},
+					"response": []
+				},
+				{
+					"name": "Filter by Date Range",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions?start_date=2024-01-01T00:00:00Z&end_date=2024-12-31T23:59:59Z",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions"],
+							"query": [
+								{
+									"key": "start_date",
+									"value": "2024-01-01T00:00:00Z"
+								},
+								{
+									"key": "end_date",
+									"value": "2024-12-31T23:59:59Z"
+								}
+							]
+						},
+						"description": "Filter transactions by date range (all of 2024)"
+					},
+					"response": []
+				},
+				{
+					"name": "Filter by Amount Range",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions?min_amount=1000&max_amount=50000",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions"],
+							"query": [
+								{
+									"key": "min_amount",
+									"value": "1000",
+									"description": "$10.00"
+								},
+								{
+									"key": "max_amount",
+									"value": "50000",
+									"description": "$500.00"
+								}
+							]
+						},
+						"description": "Filter transactions between $10 and $500"
+					},
+					"response": []
+				},
+				{
+					"name": "Complex Filter - Expenses in Range",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions?type=expense&category_id=55555555-5555-5555-5555-555555555555&start_date=2024-01-01T00:00:00Z&min_amount=500",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions"],
+							"query": [
+								{
+									"key": "type",
+									"value": "expense"
+								},
+								{
+									"key": "category_id",
+									"value": "55555555-5555-5555-5555-555555555555"
+								},
+								{
+									"key": "start_date",
+									"value": "2024-01-01T00:00:00Z"
+								},
+								{
+									"key": "min_amount",
+									"value": "500"
+								}
+							]
+						},
+						"description": "Complex filter: groceries expenses since 2024, minimum $5"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Transactions - Sorting & Pagination",
+			"item": [
+				{
+					"name": "Sort by Date Descending (default)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions?sort_by=occurred_at&sort_order=desc&limit=5",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions"],
+							"query": [
+								{
+									"key": "sort_by",
+									"value": "occurred_at"
+								},
+								{
+									"key": "sort_order",
+									"value": "desc"
+								},
+								{
+									"key": "limit",
+									"value": "5"
+								}
+							]
+						},
+						"description": "Most recent transactions first"
+					},
+					"response": []
+				},
+				{
+					"name": "Sort by Amount Ascending",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions?sort_by=amount_cents&sort_order=asc&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions"],
+							"query": [
+								{
+									"key": "sort_by",
+									"value": "amount_cents"
+								},
+								{
+									"key": "sort_order",
+									"value": "asc"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Smallest amounts first"
+					},
+					"response": []
+				},
+				{
+					"name": "Sort by Amount Descending",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions?sort_by=amount_cents&sort_order=desc&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions"],
+							"query": [
+								{
+									"key": "sort_by",
+									"value": "amount_cents"
+								},
+								{
+									"key": "sort_order",
+									"value": "desc"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Largest amounts first"
+					},
+					"response": []
+				},
+				{
+					"name": "Pagination - Page 1",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions?page=1&limit=5",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "5"
+								}
+							]
+						},
+						"description": "First 5 transactions"
+					},
+					"response": []
+				},
+				{
+					"name": "Pagination - Page 2",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions?page=2&limit=5",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions"],
+							"query": [
+								{
+									"key": "page",
+									"value": "2"
+								},
+								{
+									"key": "limit",
+									"value": "5"
+								}
+							]
+						},
+						"description": "Next 5 transactions"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "File Upload",
+			"item": [
+				{
+					"name": "Upload Receipt",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has filename\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('filename');",
+									"    pm.collectionVariables.set(\"receipt_filename\", jsonData.filename);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": [],
+									"description": "Select a receipt image (jpg, png, pdf, gif - max 10MB)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/files/receipts",
+							"host": ["{{base_url}}"],
+							"path": ["api", "files", "receipts"]
+						},
+						"description": "Upload a receipt file. Click 'Select Files' in the Body tab to choose a file."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Receipt",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/files/receipts/{{receipt_filename}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "files", "receipts", "{{receipt_filename}}"]
+						},
+						"description": "Download an uploaded receipt file"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Receipt",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/files/receipts/{{receipt_filename}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "files", "receipts", "{{receipt_filename}}"]
+						},
+						"description": "Delete an uploaded receipt file"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Validation Tests",
+			"item": [
+				{
+					"name": "Create Transaction - Future Date (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Error message mentions future\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.detail).to.include('future');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"expense\",\n  \"amount_cents\": 1000,\n  \"description\": \"Future transaction\",\n  \"occurred_at\": \"2099-01-01T00:00:00Z\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/transactions",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions"]
+						},
+						"description": "Test validation: future dates should be rejected"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Transaction - Negative Amount (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 422\", function () {",
+									"    pm.response.to.have.status(422);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"expense\",\n  \"amount_cents\": -1000,\n  \"description\": \"Negative amount\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/transactions",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions"]
+						},
+						"description": "Test validation: negative amounts should be rejected"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Transaction - Invalid Type (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 422\", function () {",
+									"    pm.response.to.have.status(422);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"invalid_type\",\n  \"amount_cents\": 1000,\n  \"description\": \"Invalid type\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/transactions",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions"]
+						},
+						"description": "Test validation: type must be 'income' or 'expense'"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Non-existent Transaction (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions/00000000-0000-0000-0000-000000000000",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions", "00000000-0000-0000-0000-000000000000"]
+						},
+						"description": "Test 404: non-existent transaction"
+					},
+					"response": []
+				},
+				{
+					"name": "Unauthorized Access (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions"]
+						},
+						"description": "Test 401: access without token should fail"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

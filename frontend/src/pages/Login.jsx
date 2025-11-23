@@ -53,28 +53,17 @@ export default function Login() {
     }
 
     try {
-      // TODO: Replace with actual API call to the FastAPI backend
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData)
-      // });
-
-      // Simulate network delay for loading state
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      // For now, use mock authentication
-      login({
+      // Call real API through AuthContext
+      await login({
         email: formData.email,
-        firstName: 'Budget',
-        lastName: 'User',
-        avatar: null
+        password: formData.password,
       });
 
-      // Navigate to dashboard
+      // Navigate to dashboard on success
       navigate('/dashboard');
     } catch (err) {
-      setError('Login failed. Please try again.');
+      console.error('Login error:', err);
+      setError(err.message || 'Login failed. Please check your credentials and try again.');
     } finally {
       setIsLoading(false);
     }

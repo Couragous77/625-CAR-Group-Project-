@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { requestPasswordReset } from '../services/authService';
 import Logo from '../components/Logo';
 
 export default function ForgotPassword() {
@@ -21,7 +22,7 @@ export default function ForgotPassword() {
       setIsLoading(false);
       return;
     }
-    
+
     if (!email.includes('@')) {
       setFieldError('Please enter a valid email address');
       setIsLoading(false);
@@ -29,20 +30,14 @@ export default function ForgotPassword() {
     }
 
     try {
-      // TODO: Replace with actual API call to the FastAPI backend
-      // const response = await fetch('/api/auth/forgot-password', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email })
-      // });
+      // Call real API
+      await requestPasswordReset(email);
 
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      // For now, simulate success
+      // Show success message
       setSubmitted(true);
     } catch (err) {
-      setError('Something went wrong. Please try again.');
+      console.error('Password reset error:', err);
+      setError(err.message || 'Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +61,7 @@ export default function ForgotPassword() {
           </div>
           <h1>Reset your password</h1>
           <p>
-            Don't worry! It happens to the best of us. Enter your email 
+            Don't worry! It happens to the best of us. Enter your email
             address and we'll send you instructions to reset your password.
           </p>
           <div className="perk">
@@ -146,26 +141,26 @@ export default function ForgotPassword() {
           ) : (
             <>
               <div className="success-message">
-                <svg 
-                  width="64" 
-                  height="64" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
+                <svg
+                  width="64"
+                  height="64"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
                   strokeWidth="2"
                   style={{ color: 'var(--good)', margin: '0 auto 1rem' }}
                 >
                   <circle cx="12" cy="12" r="10" />
                   <path d="M9 12l2 2 4-4" />
                 </svg>
-                
+
                 <h2 style={{ marginTop: 0 }}>Check Your Email</h2>
                 <p className="hint" style={{ fontSize: '1rem', lineHeight: '1.6' }}>
                   We've sent password reset instructions to <strong>{email}</strong>
                 </p>
                 <p className="hint" style={{ fontSize: '0.95rem', marginTop: '1rem' }}>
                   Didn't receive the email? Check your spam folder or{' '}
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setSubmitted(false)}
                     style={{

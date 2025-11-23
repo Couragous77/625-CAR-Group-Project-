@@ -145,6 +145,12 @@ export default function Header() {
               >
                 Track Income
               </Link>
+              <Link
+                to="/envelopes"
+                className={isActiveLink('/envelopes') ? 'active' : ''}
+              >
+                Envelopes
+              </Link>
 
               {/* Notifications Icon */}
               <div className="notification-dropdown" ref={notificationsRef}>
@@ -276,6 +282,16 @@ export default function Header() {
                 <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
               </svg>
               Track Income
+            </Link>
+            <Link
+              to="/envelopes"
+              className={`mobile-menu-item ${isActiveLink('/envelopes') ? 'active' : ''}`}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="M2 7.5l10 5.5 10-5.5" />
+              </svg>
+              Envelopes
             </Link>
             <Link
               to="/profile"
