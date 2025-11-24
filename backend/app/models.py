@@ -9,6 +9,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
@@ -57,6 +58,17 @@ class User(Base):
     )
     notification_events = relationship(
         "NotificationEvent", back_populates="user", cascade="all, delete-orphan"
+    )
+
+    bank_connections = relationship(
+        "BankConnection", back_populates="user", cascade="all, delete-orphan"
+    )
+    imported_transactions = relationship(
+        "ImportedTransaction", back_populates="user", cascade="all, delete-orphan"
+    )
+    goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan")
+    achievements = relationship(
+        "Achievement", back_populates="user", cascade="all, delete-orphan"
     )
 
 
@@ -110,6 +122,11 @@ class Category(Base):
     """Budget categories with optional spending limits."""
 
     __tablename__ = "categories"
+
+    # we need the Unique constraints to prevent a user from having two categories with the same name.
+    __table_args__ = (
+        UniqueConstraint("user_id", "name", name="uq_categories_user_id_name"),
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(
@@ -166,6 +183,9 @@ class Transaction(Base):
     # Relationships
     user = relationship("User", back_populates="transactions")
     category = relationship("Category", back_populates="transactions")
+    imported_transactions = relationship(
+        "ImportedTransaction", back_populates="mapped_transaction"
+    )
 
     __table_args__ = (
         CheckConstraint(
@@ -202,6 +222,15 @@ class CategoryThreshold(Base):
     """Alert thresholds for specific categories."""
 
     __tablename__ = "category_thresholds"
+
+    # we need the Unique constraints to prevent a user from having two category thresholds for the same category
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "category_id",
+            name="uq_category_thresholds_user_category",
+        ),
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(
@@ -248,3 +277,167 @@ class NotificationEvent(Base):
     # Relationships
     user = relationship("User", back_populates="notification_events")
     category = relationship("Category", back_populates="notification_events")
+
+
+class BankConnection(Base):
+    """Represents a linked banking provider connection (e.g. Plaid)."""
+
+    __tablename__ = "bank_connections"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    provider = Column(Text, nullable=False)
+    access_token_encrypted = Column(Text, nullable=False)
+    status = Column(Text)
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    # Relationships
+    user = relationship("User", back_populates="bank_connections")
+    accounts = relationship(
+        "BankAccount", back_populates="connection", cascade="all, delete-orphan"
+    )
+
+
+class BankAccount(Base):
+    """Individual bank account synced via a BankConnection."""
+
+    __tablename__ = "bank_accounts"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    connection_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("bank_connections.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    external_account_id = Column(Text, nullable=False)
+    name = Column(Text)
+    mask = Column(Text)  # last 4 digits etc.
+    type = Column(Text)  # checking, savings, credit
+    currency = Column(Text, nullable=False, default="USD")
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    # Relationships
+    connection = relationship("BankConnection", back_populates="accounts")
+    imported_transactions = relationship(
+        "ImportedTransaction",
+        back_populates="bank_account",
+        cascade="all, delete-orphan",
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "connection_id",
+            "external_account_id",
+            name="bank_accounts_unique",
+        ),
+    )
+
+
+class ImportedTransaction(Base):
+    """Raw transactions imported from a bank account, optionally mapped to a Transaction."""
+
+    __tablename__ = "imported_transactions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    bank_account_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("bank_accounts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    external_txn_id = Column(Text, nullable=False)
+    raw = Column(JSONB, nullable=False)
+    mapped_transaction_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("transactions.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    occurred_at = Column(DateTime(timezone=True), nullable=False, index=True)
+    amount_cents = Column(Integer, nullable=False)
+    description = Column(Text)
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    # Relationships
+    user = relationship("User", back_populates="imported_transactions")
+    bank_account = relationship("BankAccount", back_populates="imported_transactions")
+    mapped_transaction = relationship(
+        "Transaction", back_populates="imported_transactions"
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "bank_account_id",
+            "external_txn_id",
+            name="imported_transactions_unique",
+        ),
+    )
+
+
+class Goal(Base):
+    """Savings or budgeting goal for a user."""
+
+    __tablename__ = "goals"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    name = Column(Text, nullable=False)
+    target_cents = Column(Integer, nullable=False)
+    target_date = Column(
+        DateTime(timezone=False)
+    )  # DATE in DB; DATE maps fine from naive DateTime
+    created_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    # Relationships
+    user = relationship("User", back_populates="goals")
+
+
+class Achievement(Base):
+    """Gamification badges / achievements unlocked by a user."""
+
+    __tablename__ = "achievements"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    code = Column(Text, nullable=False)
+    awarded_at = Column(DateTime(timezone=True), nullable=False)
+
+    # Relationships
+    user = relationship("User", back_populates="achievements")
+
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "code",
+            name="achievements_user_code_unique",
+        ),
+    )
