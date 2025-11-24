@@ -59,20 +59,17 @@ class User(Base):
     notification_events = relationship(
         "NotificationEvent", back_populates="user", cascade="all, delete-orphan"
     )
-    
+
     bank_connections = relationship(
         "BankConnection", back_populates="user", cascade="all, delete-orphan"
     )
     imported_transactions = relationship(
         "ImportedTransaction", back_populates="user", cascade="all, delete-orphan"
     )
-    goals = relationship(
-        "Goal", back_populates="user", cascade="all, delete-orphan"
-    )
+    goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan")
     achievements = relationship(
         "Achievement", back_populates="user", cascade="all, delete-orphan"
     )
-
 
 
 class Session(Base):
@@ -125,7 +122,7 @@ class Category(Base):
     """Budget categories with optional spending limits."""
 
     __tablename__ = "categories"
-    
+
     # we need the Unique constraints to prevent a user from having two categories with the same name.
     __table_args__ = (
         UniqueConstraint("user_id", "name", name="uq_categories_user_id_name"),
@@ -281,6 +278,7 @@ class NotificationEvent(Base):
     user = relationship("User", back_populates="notification_events")
     category = relationship("Category", back_populates="notification_events")
 
+
 class BankConnection(Base):
     """Represents a linked banking provider connection (e.g. Plaid)."""
 
@@ -293,9 +291,9 @@ class BankConnection(Base):
         nullable=False,
         index=True,
     )
-    provider = Column(Text, nullable=False)  
+    provider = Column(Text, nullable=False)
     access_token_encrypted = Column(Text, nullable=False)
-    status = Column(Text)  
+    status = Column(Text)
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
@@ -305,7 +303,8 @@ class BankConnection(Base):
     accounts = relationship(
         "BankAccount", back_populates="connection", cascade="all, delete-orphan"
     )
-    
+
+
 class BankAccount(Base):
     """Individual bank account synced via a BankConnection."""
 
@@ -342,7 +341,8 @@ class BankAccount(Base):
             name="bank_accounts_unique",
         ),
     )
-    
+
+
 class ImportedTransaction(Base):
     """Raw transactions imported from a bank account, optionally mapped to a Transaction."""
 
@@ -377,9 +377,7 @@ class ImportedTransaction(Base):
 
     # Relationships
     user = relationship("User", back_populates="imported_transactions")
-    bank_account = relationship(
-        "BankAccount", back_populates="imported_transactions"
-    )
+    bank_account = relationship("BankAccount", back_populates="imported_transactions")
     mapped_transaction = relationship(
         "Transaction", back_populates="imported_transactions"
     )
@@ -391,6 +389,7 @@ class ImportedTransaction(Base):
             name="imported_transactions_unique",
         ),
     )
+
 
 class Goal(Base):
     """Savings or budgeting goal for a user."""
@@ -406,13 +405,16 @@ class Goal(Base):
     )
     name = Column(Text, nullable=False)
     target_cents = Column(Integer, nullable=False)
-    target_date = Column(DateTime(timezone=False))  # DATE in DB; DATE maps fine from naive DateTime
+    target_date = Column(
+        DateTime(timezone=False)
+    )  # DATE in DB; DATE maps fine from naive DateTime
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
 
     # Relationships
     user = relationship("User", back_populates="goals")
+
 
 class Achievement(Base):
     """Gamification badges / achievements unlocked by a user."""
@@ -439,4 +441,3 @@ class Achievement(Base):
             name="achievements_user_code_unique",
         ),
     )
-
