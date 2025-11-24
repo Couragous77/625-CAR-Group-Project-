@@ -9,6 +9,7 @@ import { formatDate, formatDateShort } from '../utils/date';
 import SpendingPieChart from '../components/charts/SpendingPieChart';
 import TrendsBarChart from '../components/charts/TrendsBarChart';
 import DashboardFilters from '../components/DashboardFilters';
+import PiggyBank from '../components/PiggyBank';
 
 function Dashboard() {
   const { getToken } = useAuth();
@@ -445,19 +446,15 @@ function Dashboard() {
           )}
         </article>
 
-        {/* Row 2: Weekly Goal, Quick Add Expense, Recent Transactions */}
+        {/* Row 2: Savings Progress, Quick Add Expense, Recent Transactions */}
 
-        {/* Weekly goal + piggy */}
-        <article className="card" aria-labelledby="weekly-title">
-          <h2 id="weekly-title">Weekly Goal</h2>
-          <div className="progress" aria-hidden="true">
-            <span style={{ width: '72%' }}></span>
-          </div>
-          <div className="divider"></div>
-          <div>
-            <strong>Savings progress</strong>
-            <p className="muted" style={{ margin: '0.55rem 0 0' }}>Keep going — you're close to your goal.</p>
-          </div>
+        {/* Savings Progress with Piggy Bank */}
+        <article className="card" aria-labelledby="savings-title">
+          <h2 id="savings-title">Savings Progress</h2>
+          <PiggyBank 
+            currentSavings={Math.max(0, totalIncome - totalExpenses)} 
+            savingsGoal={100000}
+          />
         </article>
 
         {/* Add Expense */}
