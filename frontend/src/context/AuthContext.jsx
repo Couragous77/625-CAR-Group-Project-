@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { loginUser, registerUser, getCurrentUser } from '../services/authService';
+import { loginUser, registerUser, getCurrentUser, updateProfile } from '../services/authService';
 
 const AuthContext = createContext(null);
 
@@ -24,6 +24,19 @@ function isTokenExpired(token) {
   return decoded.exp * 1000 < Date.now();
 }
 
+function normalizeUser(apiUser) {
+  if (!apiUser) return null;
+  return {
+    id: apiUser.id,
+    email: apiUser.email,
+    firstName: apiUser.first_name ?? '',
+    lastName: apiUser.last_name ?? '',
+    studentStatus: apiUser.student_status ?? '',
+    role: apiUser.role,
+    goals: apiUser.goals || [],
+  };
+}
+
 export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
@@ -38,7 +51,8 @@ export function AuthProvider({ children }) {
       if (token && !isTokenExpired(token)) {
         try {
           // Fetch fresh user data from API
-          const userData = await getCurrentUser(token);
+          const apiUser = await getCurrentUser(token);
+          const userData = normalizeUser(apiUser);
           setIsAuthenticated(true);
           setUser(userData);
           // Update stored user data
@@ -78,7 +92,8 @@ export function AuthProvider({ children }) {
       localStorage.setItem(TOKEN_KEY, token);
 
       // Fetch user profile
-      const userData = await getCurrentUser(token);
+      const apiUser = await getCurrentUser(token);
+      const userData = normalizeUser(apiUser);
       
       // Store user data
       localStorage.setItem(USER_KEY, JSON.stringify(userData));
@@ -123,7 +138,8 @@ export function AuthProvider({ children }) {
       localStorage.setItem(TOKEN_KEY, token);
 
       // Fetch user profile using the token
-      const userData = await getCurrentUser(token);
+      const apiUser = await getCurrentUser(token);
+      const userData = normalizeUser(apiUser);
       
       // Store user data
       localStorage.setItem(USER_KEY, JSON.stringify(userData));
@@ -142,6 +158,16 @@ export function AuthProvider({ children }) {
     return localStorage.getItem(TOKEN_KEY);
   };
 
+  const saveProfile = async (profile) => {
+    const token = getToken();
+    if (!token) throw new Error('Not authenticated');
+    const apiUser = await updateProfile(profile, token);
+    const userData = normalizeUser(apiUser);
+    localStorage.setItem(USER_KEY, JSON.stringify(userData));
+    setUser(userData);
+    return userData;
+  };
+
   return (
     <AuthContext.Provider value={{
       isAuthenticated,
@@ -150,7 +176,8 @@ export function AuthProvider({ children }) {
       login,
       logout,
       register,
-      getToken
+      getToken,
+      saveProfile,
     }}>
       {children}
     </AuthContext.Provider>

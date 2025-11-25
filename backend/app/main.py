@@ -5,6 +5,7 @@ from .auth_router import router as auth_router
 from .categories_router import router as categories_router
 from .config import settings
 from .files_router import ensure_upload_dir, router as files_router
+from .goals_router import router as goals_router
 from .password_reset_router import router as password_reset_router
 from .transactions_router import router as transactions_router
 
@@ -39,6 +40,7 @@ def health():
 app.include_router(auth_router)
 app.include_router(password_reset_router)
 app.include_router(categories_router, prefix="/api/categories", tags=["categories"])
+app.include_router(goals_router)
 app.include_router(transactions_router)
 app.include_router(files_router)
 
