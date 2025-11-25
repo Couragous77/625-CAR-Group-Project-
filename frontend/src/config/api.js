@@ -15,4 +15,7 @@ export const API_ENDPOINTS = {
   
   // Categories (future)
   categories: '/api/categories',
+
+  // Goals
+  goals: '/api/goals',
 };

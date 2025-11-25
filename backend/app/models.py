@@ -28,6 +28,7 @@ class User(Base):
     password_hash = Column(Text, nullable=False)
     first_name = Column(String(100))
     last_name = Column(String(100))
+    student_status = Column(String(100))
     role = Column(String, nullable=False, default="student")  # student, admin
     created_at = Column(
         DateTime(timezone=True), nullable=False, server_default=func.now()

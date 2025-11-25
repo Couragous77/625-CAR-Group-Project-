@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { listTransactions, createTransaction } from '../services/transactionService';
 import { listCategories } from '../services/categoryService';
 import { getSpendingByCategory, getTrendsByPeriod } from '../services/aggregationService';
+import { listGoals, createGoal } from '../services/goalService';
 import { formatCurrency } from '../utils/currency';
 import { formatDate, formatDateShort } from '../utils/date';
 import SpendingPieChart from '../components/charts/SpendingPieChart';
@@ -19,6 +20,8 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
+  const [goals, setGoals] = useState([]);
+  const [loadingGoals, setLoadingGoals] = useState(false);
 
   // Quick add expense form state
   const [quickExpense, setQuickExpense] = useState({
@@ -27,6 +30,12 @@ function Dashboard() {
     description: '',
   });
   const [submittingExpense, setSubmittingExpense] = useState(false);
+  const [goalForm, setGoalForm] = useState({
+    name: '',
+    target: '',
+    target_date: '',
+  });
+  const [submittingGoal, setSubmittingGoal] = useState(false);
 
   // Analytics data
   const [spendingData, setSpendingData] = useState([]);
@@ -42,6 +51,7 @@ function Dashboard() {
   // Load categories and recent income on mount
   useEffect(() => {
     loadDashboardData();
+    loadGoals();
   }, []);
 
   // Load analytics data when filters change
@@ -213,6 +223,23 @@ function Dashboard() {
   }
 
   /**
+   * Load goals for current user
+   */
+  async function loadGoals() {
+    try {
+      setLoadingGoals(true);
+      const token = getToken();
+      if (!token) return;
+      const goalData = await listGoals(token);
+      setGoals(Array.isArray(goalData) ? goalData : []);
+    } catch (error) {
+      console.error('Failed to load goals:', error);
+    } finally {
+      setLoadingGoals(false);
+    }
+  }
+
+  /**
    * Get category name by ID
    */
   function getCategoryName(categoryId) {
@@ -262,6 +289,49 @@ function Dashboard() {
       alert(error.message || 'Failed to add expense. Please try again.');
     } finally {
       setSubmittingExpense(false);
+    }
+  }
+
+  /**
+   * Handle create goal form submission
+   */
+  async function handleCreateGoalSubmit(e) {
+    e.preventDefault();
+
+    if (!goalForm.name || !goalForm.target) {
+      alert('Please enter a goal name and target amount');
+      return;
+    }
+
+    const targetNumber = Number.parseFloat(goalForm.target);
+    if (Number.isNaN(targetNumber) || targetNumber <= 0) {
+      alert('Target amount must be greater than 0');
+      return;
+    }
+
+    try {
+      setSubmittingGoal(true);
+      const token = getToken();
+      const payload = {
+        name: goalForm.name.trim(),
+        target_cents: Math.round(targetNumber * 100),
+        target_date: goalForm.target_date ? new Date(goalForm.target_date).toISOString() : null,
+      };
+
+      await createGoal(payload, token);
+
+      setGoalForm({
+        name: '',
+        target: '',
+        target_date: '',
+      });
+
+      await loadGoals();
+    } catch (error) {
+      console.error('Failed to create goal:', error);
+      alert(error.message || 'Failed to create goal. Please try again.');
+    } finally {
+      setSubmittingGoal(false);
     }
   }
 
@@ -440,17 +510,78 @@ function Dashboard() {
 
         {/* Row 2: Weekly Goal, Quick Add Expense, Recent Transactions */}
 
-        {/* Weekly goal + piggy */}
-        <article className="card" aria-labelledby="weekly-title">
-          <h2 id="weekly-title">Weekly Goal</h2>
-          <div className="progress" aria-hidden="true">
-            <span style={{ width: '72%' }}></span>
-          </div>
-          <div className="divider"></div>
-          <div>
-            <strong>Savings progress</strong>
-            <p className="muted" style={{ margin: '0.55rem 0 0' }}>Keep going — you're close to your goal.</p>
-          </div>
+        {/* Goals */}
+        <article className="card" aria-labelledby="goals-title">
+          <h2 id="goals-title">Goals</h2>
+          {loadingGoals ? (
+            <p className="muted">Loading goals...</p>
+          ) : goals.length === 0 ? (
+            <p className="muted">No goals yet. Create your first goal below.</p>
+          ) : (
+            <ul className="list" style={{ gap: '0.75rem' }}>
+              {goals.map((goal) => (
+                <li key={goal.id} style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                    <strong>{goal.name}</strong>
+                    <span className="muted" style={{ whiteSpace: 'nowrap' }}>
+                      {formatCurrency(goal.target_cents)}
+                    </span>
+                  </div>
+                  {goal.target_date && (
+                    <small className="muted">Target date: {formatDate(goal.target_date)}</small>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="divider" style={{ margin: '0.75rem 0' }}></div>
+
+          <form onSubmit={handleCreateGoalSubmit}>
+            <div className="field">
+              <label htmlFor="goal-name">Goal name</label>
+              <input
+                id="goal-name"
+                name="name"
+                type="text"
+                placeholder="e.g., Emergency fund"
+                value={goalForm.name}
+                onChange={(e) => setGoalForm({ ...goalForm, name: e.target.value })}
+                disabled={submittingGoal}
+                required
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="goal-target">Target amount ($)</label>
+              <input
+                id="goal-target"
+                name="target"
+                type="number"
+                step="0.01"
+                min="0"
+                inputMode="decimal"
+                placeholder="e.g., 500"
+                value={goalForm.target}
+                onChange={(e) => setGoalForm({ ...goalForm, target: e.target.value })}
+                disabled={submittingGoal}
+                required
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="goal-date">Target date (optional)</label>
+              <input
+                id="goal-date"
+                name="target_date"
+                type="date"
+                value={goalForm.target_date}
+                onChange={(e) => setGoalForm({ ...goalForm, target_date: e.target.value })}
+                disabled={submittingGoal}
+              />
+            </div>
+            <button className="btn primary" type="submit" disabled={submittingGoal}>
+              {submittingGoal ? 'Saving...' : 'Create Goal'}
+            </button>
+          </form>
         </article>
 
         {/* Add Expense */}

@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from . import schemas
+from . import schemas, models
 from .config import settings
 from .db import get_db
 from .deps import get_current_user
@@ -137,19 +137,67 @@ def login(
 @router.get("/me", response_model=schemas.UserResponse)
 def get_current_user_profile(
     current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Get the current authenticated user's profile.
 
     Args:
         current_user: The authenticated user from the JWT token
+        db: Database session for eager loading related data
 
     Returns:
         UserResponse with user profile information
     """
+    goals = (
+        db.query(models.Goal)
+        .filter(models.Goal.user_id == current_user.id)
+        .order_by(models.Goal.created_at.desc())
+        .all()
+    )
+
     return schemas.UserResponse(
         id=current_user.id,
         email=current_user.email,
         first_name=current_user.first_name,
         last_name=current_user.last_name,
+        student_status=current_user.student_status,
         role=current_user.role,
+        goals=goals,
+    )
+
+
+@router.patch("/me", response_model=schemas.UserResponse)
+def update_current_user_profile(
+    body: schemas.UserUpdate,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Update the current authenticated user's profile."""
+    # Apply updates if provided
+    if body.first_name is not None:
+        current_user.first_name = body.first_name
+    if body.last_name is not None:
+        current_user.last_name = body.last_name
+    if body.student_status is not None:
+        current_user.student_status = body.student_status
+
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+
+    goals = (
+        db.query(models.Goal)
+        .filter(models.Goal.user_id == current_user.id)
+        .order_by(models.Goal.created_at.desc())
+        .all()
+    )
+
+    return schemas.UserResponse(
+        id=current_user.id,
+        email=current_user.email,
+        first_name=current_user.first_name,
+        last_name=current_user.last_name,
+        student_status=current_user.student_status,
+        role=current_user.role,
+        goals=goals,
     )

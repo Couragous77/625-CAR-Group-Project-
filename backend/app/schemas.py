@@ -53,6 +53,29 @@ class PasswordResetConfirm(BaseModel):
 # ================================
 
 
+class GoalCreate(BaseModel):
+    """Schema for creating a goal."""
+
+    name: str
+    target_cents: int = Field(gt=0, description="Savings target in cents (must be > 0)")
+    target_date: Optional[datetime] = Field(
+        None, description="Optional target completion date (ISO format)"
+    )
+
+
+class GoalOut(BaseModel):
+    """Schema for goal response."""
+
+    id: UUID
+    name: str
+    target_cents: int
+    target_date: Optional[datetime]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class UserCreate(BaseModel):
     """Schema for creating a new user."""
 
@@ -69,7 +92,9 @@ class UserResponse(BaseModel):
     email: EmailStr
     first_name: Optional[str]
     last_name: Optional[str]
+    student_status: Optional[str] = None
     role: str
+    goals: list[GoalOut] = []
 
     class Config:
         from_attributes = True
@@ -82,11 +107,20 @@ class UserOut(BaseModel):
     email: EmailStr
     first_name: Optional[str]
     last_name: Optional[str]
+    student_status: Optional[str] = None
     role: str
     created_at: datetime
 
     class Config:
         from_attributes = True
+
+
+class UserUpdate(BaseModel):
+    """Schema for updating user profile fields."""
+
+    first_name: Optional[str] = Field(None, max_length=100)
+    last_name: Optional[str] = Field(None, max_length=100)
+    student_status: Optional[str] = Field(None, max_length=100)
 
 
 # ================================

@@ -89,6 +89,33 @@ export async function getCurrentUser(token) {
 }
 
 /**
+ * Update current user profile
+ * @param {Object} data - Profile fields to update
+ * @param {string} [data.first_name] - First name
+ * @param {string} [data.last_name] - Last name
+ * @param {string} [data.student_status] - Student status
+ * @param {string} token - JWT access token
+ * @returns {Promise<Object>} Updated user profile data
+ */
+export async function updateProfile(data, token) {
+  const response = await fetch(`${API_BASE_URL}/api/me`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Failed to update profile' }));
+    throw new Error(error.detail || 'Failed to update profile');
+  }
+
+  return response.json();
+}
+
+/**
  * Request password reset
  * @param {string} email - User email
  * @returns {Promise<Object>} Reset request response
