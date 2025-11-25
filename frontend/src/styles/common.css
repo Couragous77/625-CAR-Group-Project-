@@ -12,8 +12,8 @@
     --card: #ffffff;
     --ink: #1e2a23;
     --text: #1f2937;
-    --muted: #6b7f74;
-    --muted-2: #6b7280;
+    --muted: #5a6b62;
+    --muted-2: #5a6470;
 
     /* Brand Colors */
     --accent: #3baa6b;
@@ -26,9 +26,9 @@
 
     /* Semantic Colors */
     --good: #2f8f5b;
-    --success: #22c55e;
-    --warn: #e58a3b;
-    --warning: #f59e0b;
+    --success: #16a34a;
+    --warn: #d97706;
+    --warning: #d97706;
     --danger: #dc2626;
     --danger-100: #fdecec;
     --primary: #3b82f6;
@@ -173,11 +173,19 @@ p {
     grid-template-columns: 1fr;
 }
 
-@media (min-width: 960px) {
+/* Tablet breakpoint - 2 columns */
+@media (min-width: 768px) {
     .grid-cols-2 {
         grid-template-columns: 1fr 1fr;
     }
-    
+
+    .grid-cols-3 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Desktop breakpoint - full grid */
+@media (min-width: 1024px) {
     .grid-cols-3 {
         grid-template-columns: 1fr 1fr 1fr;
     }
@@ -347,12 +355,12 @@ p {
     display: none;
     flex-direction: column;
     justify-content: space-around;
-    width: 28px;
-    height: 24px;
+    width: 48px;
+    height: 48px;
     background: transparent;
     border: none;
     cursor: pointer;
-    padding: 0;
+    padding: 10px;
     z-index: 10;
 }
 
@@ -762,6 +770,7 @@ textarea {
     font-size: 1rem;
     outline: none;
     transition: box-shadow 0.2s, border-color 0.2s;
+    min-height: 48px;
 }
 
 input:focus,
@@ -796,18 +805,20 @@ textarea {
 
 .password-toggle-icon {
   position: absolute;
-  right: 0.75rem;
+  right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
   color: var(--muted);
-  padding: 0.25rem;
+  padding: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: color 0.2s;
+  min-width: 48px;
+  min-height: 48px;
 }
 
 .password-toggle-icon:hover {
@@ -937,6 +948,8 @@ textarea {
     cursor: pointer;
     box-shadow: 0 6px 16px rgba(59, 170, 107, .12);
     transition: all 0.2s;
+    min-height: 48px;
+    min-width: 48px;
 }
 
 .btn:hover {
@@ -1100,7 +1113,7 @@ table {
 
 td,
 th {
-    padding: 0.6rem 0.4rem;
+    padding: 1rem 0.4rem;
     border-bottom: var(--hairline);
     text-align: left;
     font-size: 0.95rem;
@@ -1149,14 +1162,16 @@ th {
    ======================================== */
 .switch {
     position: relative;
-    width: 44px;
-    height: 26px;
+    width: 56px;
+    height: 32px;
     background: #e5e7eb;
     border-radius: 999px;
     cursor: pointer;
     transition: 0.2s;
     border: 1px solid var(--border);
     display: inline-block;
+    padding: 8px 0;
+    min-height: 48px;
 }
 
 .switch::after {

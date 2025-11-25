@@ -239,6 +239,7 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleCreateCategory())}
+              aria-label="New category name"
             />
             <button type="button" className="btn secondary small" onClick={handleCreateCategory}>
               Add

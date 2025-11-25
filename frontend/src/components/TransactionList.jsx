@@ -164,7 +164,7 @@ export default function TransactionList({ refreshKey = 0, transactionType = 'exp
   return (
     <div className="transaction-list">
       {/* Filters */}
-      <div className="transaction-filters">
+      <div className="transaction-filters" role="search" aria-label="Filter transactions">
         <div className="filter-row">
           <input
             type="search"
@@ -172,12 +172,14 @@ export default function TransactionList({ refreshKey = 0, transactionType = 'exp
             value={search}
             onChange={(e) => updateQueryParam('search', e.target.value)}
             className="filter-search"
+            aria-label="Search transactions by description"
           />
           
           <select
             value={categoryId}
             onChange={(e) => updateQueryParam('category_id', e.target.value)}
             className="filter-select"
+            aria-label="Filter by category"
           >
             <option value="">All Categories</option>
             {categories.map(cat => (
@@ -188,8 +190,9 @@ export default function TransactionList({ refreshKey = 0, transactionType = 'exp
         
         <div className="filter-row">
           <div className="filter-group">
-            <label>From</label>
+            <label htmlFor="filter-start-date">From</label>
             <input
+              id="filter-start-date"
               type="date"
               value={startDate}
               onChange={(e) => updateQueryParam('start_date', e.target.value)}
@@ -197,8 +200,9 @@ export default function TransactionList({ refreshKey = 0, transactionType = 'exp
           </div>
           
           <div className="filter-group">
-            <label>To</label>
+            <label htmlFor="filter-end-date">To</label>
             <input
+              id="filter-end-date"
               type="date"
               value={endDate}
               onChange={(e) => updateQueryParam('end_date', e.target.value)}
@@ -206,8 +210,9 @@ export default function TransactionList({ refreshKey = 0, transactionType = 'exp
           </div>
           
           <div className="filter-group">
-            <label>Min $</label>
+            <label htmlFor="filter-min-amount">Min $</label>
             <input
+              id="filter-min-amount"
               type="number"
               step="0.01"
               placeholder="0.00"
@@ -217,8 +222,9 @@ export default function TransactionList({ refreshKey = 0, transactionType = 'exp
           </div>
           
           <div className="filter-group">
-            <label>Max $</label>
+            <label htmlFor="filter-max-amount">Max $</label>
             <input
+              id="filter-max-amount"
               type="number"
               step="0.01"
               placeholder="0.00"
@@ -233,6 +239,7 @@ export default function TransactionList({ refreshKey = 0, transactionType = 'exp
           <button
             className="btn secondary small"
             onClick={() => setSearchParams({})}
+            aria-label="Clear all filters"
           >
             Clear Filters
           </button>
@@ -242,23 +249,44 @@ export default function TransactionList({ refreshKey = 0, transactionType = 'exp
       {/* Table */}
       <div className="table-container">
         <table className="transaction-table">
+          <caption className="sr-only">
+            {transactionType === 'income' ? 'Income' : 'Expense'} transactions list
+          </caption>
           <thead>
             <tr>
-              <th onClick={() => handleSort('occurred_at')} className="sortable">
+              <th 
+                onClick={() => handleSort('occurred_at')} 
+                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), handleSort('occurred_at'))}
+                className="sortable"
+                role="button"
+                tabIndex={0}
+                scope="col"
+                aria-sort={sortBy === 'occurred_at' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}
+                aria-label={`Sort by date ${sortBy === 'occurred_at' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : ''}`}
+              >
                 Date {sortBy === 'occurred_at' && (sortOrder === 'asc' ? '▲' : '▼')}
               </th>
-              <th onClick={() => handleSort('amount_cents')} className="sortable">
+              <th 
+                onClick={() => handleSort('amount_cents')} 
+                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), handleSort('amount_cents'))}
+                className="sortable"
+                role="button"
+                tabIndex={0}
+                scope="col"
+                aria-sort={sortBy === 'amount_cents' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}
+                aria-label={`Sort by amount ${sortBy === 'amount_cents' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : ''}`}
+              >
                 Amount {sortBy === 'amount_cents' && (sortOrder === 'asc' ? '▲' : '▼')}
               </th>
-              <th>Category</th>
-              <th>Description</th>
-              <th className="actions-col">Actions</th>
+              <th scope="col">Category</th>
+              <th scope="col">Description</th>
+              <th className="actions-col" scope="col">Actions</th>
             </tr>
           </thead>
           <tbody>
             {transactions.length === 0 ? (
               <tr>
-                <td colSpan="5" className="no-data">
+                <td colSpan="5" className="no-data" role="status" aria-live="polite">
                   {loading ? 'Loading...' : `No ${transactionType === 'income' ? 'income' : 'expenses'} found`}
                 </td>
               </tr>
@@ -273,6 +301,7 @@ export default function TransactionList({ refreshKey = 0, transactionType = 'exp
                     <button
                       className="btn-icon"
                       onClick={() => handleEdit(transaction)}
+                      aria-label="Edit transaction"
                       title="Edit"
                     >
                       ✏️
@@ -280,6 +309,7 @@ export default function TransactionList({ refreshKey = 0, transactionType = 'exp
                     <button
                       className="btn-icon"
                       onClick={() => handleDelete(transaction)}
+                      aria-label="Delete transaction"
                       title="Delete"
                     >
                       🗑️
@@ -294,16 +324,18 @@ export default function TransactionList({ refreshKey = 0, transactionType = 'exp
       
       {/* Pagination */}
       {pagination.totalPages > 1 && (
-        <div className="pagination">
+        <nav className="pagination" aria-label="Pagination navigation">
           <button
             className="btn secondary small"
             disabled={pagination.page === 1}
             onClick={() => updateQueryParam('page', pagination.page - 1)}
+            aria-label="Go to previous page"
+            aria-disabled={pagination.page === 1}
           >
             Previous
           </button>
           
-          <span className="pagination-info">
+          <span className="pagination-info" aria-live="polite" aria-atomic="true">
             Page {pagination.page} of {pagination.totalPages} ({pagination.total} total)
           </span>
           
@@ -311,6 +343,8 @@ export default function TransactionList({ refreshKey = 0, transactionType = 'exp
             className="btn secondary small"
             disabled={pagination.page === pagination.totalPages}
             onClick={() => updateQueryParam('page', pagination.page + 1)}
+            aria-label="Go to next page"
+            aria-disabled={pagination.page === pagination.totalPages}
           >
             Next
           </button>
@@ -319,13 +353,14 @@ export default function TransactionList({ refreshKey = 0, transactionType = 'exp
             value={limit}
             onChange={(e) => updateQueryParam('limit', e.target.value)}
             className="pagination-select"
+            aria-label="Items per page"
           >
             <option value="10">10 per page</option>
             <option value="20">20 per page</option>
             <option value="50">50 per page</option>
             <option value="100">100 per page</option>
           </select>
-        </div>
+        </nav>
       )}
       
       {/* Edit Modal */}
