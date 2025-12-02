@@ -520,27 +520,37 @@ function Dashboard() {
 
         {/* Goals */}
         <article className="card" aria-labelledby="goals-title">
-          <h2 id="goals-title">Goals</h2>
+          <h2 id="goals-title">Savings Goals</h2>
           {loadingGoals ? (
             <p className="muted">Loading goals...</p>
           ) : goals.length === 0 ? (
             <p className="muted">No goals yet. Create your first goal below.</p>
           ) : (
-            <ul className="list" style={{ gap: '0.75rem' }}>
-              {goals.map((goal) => (
-                <li key={goal.id} style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                    <strong>{goal.name}</strong>
-                    <span className="muted" style={{ whiteSpace: 'nowrap' }}>
-                      {formatCurrency(goal.target_cents)}
-                    </span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '400px', overflowY: 'auto' }}>
+              {goals.map((goal) => {
+                const currentSavings = Math.max(0, totalIncome - totalExpenses);
+                return (
+                  <div key={goal.id} style={{ 
+                    padding: '1rem', 
+                    border: '1px solid var(--border)', 
+                    borderRadius: '8px',
+                    backgroundColor: 'var(--bg-secondary)'
+                  }}>
+                    <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>{goal.name}</h3>
+                    {goal.target_date && (
+                      <p className="muted" style={{ fontSize: '0.875rem', marginBottom: '0.75rem' }}>
+                        Target: {formatDate(goal.target_date)}
+                      </p>
+                    )}
+                    <PiggyBank 
+                      currentSavings={currentSavings}
+                      savingsGoal={goal.target_cents}
+                      compact={true}
+                    />
                   </div>
-                  {goal.target_date && (
-                    <small className="muted">Target date: {formatDate(goal.target_date)}</small>
-                  )}
-                </li>
-              ))}
-            </ul>
+                );
+              })}
+            </div>
           )}
 
           <div className="divider" style={{ margin: '0.75rem 0' }}></div>
