@@ -119,13 +119,17 @@ export default function TransactionList({ refreshKey = 0, transactionType = 'exp
   }
   
   function handleSort(field) {
+    const newParams = new URLSearchParams(searchParams);
     if (sortBy === field) {
       // Toggle order
-      updateQueryParam('sort_order', sortOrder === 'asc' ? 'desc' : 'asc');
+      newParams.set('sort_order', sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
-      updateQueryParam('sort_by', field);
-      updateQueryParam('sort_order', 'desc');
+      // New column - set both at once to avoid race condition
+      newParams.set('sort_by', field);
+      newParams.set('sort_order', 'desc');
     }
+    newParams.set('page', '1');
+    setSearchParams(newParams);
   }
   
   function handleEdit(transaction) {
@@ -303,6 +307,7 @@ export default function TransactionList({ refreshKey = 0, transactionType = 'exp
                       onClick={() => handleEdit(transaction)}
                       aria-label="Edit transaction"
                       title="Edit"
+                      data-testid={`edit-transaction-${transaction.id}`}
                     >
                       ✏️
                     </button>
@@ -311,6 +316,7 @@ export default function TransactionList({ refreshKey = 0, transactionType = 'exp
                       onClick={() => handleDelete(transaction)}
                       aria-label="Delete transaction"
                       title="Delete"
+                      data-testid={`delete-transaction-${transaction.id}`}
                     >
                       🗑️
                     </button>

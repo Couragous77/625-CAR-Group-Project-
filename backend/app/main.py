@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
@@ -11,14 +13,17 @@ from .goals_router import router as goals_router
 from .password_reset_router import router as password_reset_router
 from .transactions_router import router as transactions_router
 
-app = FastAPI(title=settings.app_name)
 
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize resources on app startup."""
-    # Create upload directory if it doesn't exist
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup and shutdown events."""
+    # Startup: Initialize resources
     ensure_upload_dir()
+    yield
+    # Shutdown: Clean up resources (if needed)
+
+
+app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
 
 # Configure CORS

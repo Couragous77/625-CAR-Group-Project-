@@ -73,6 +73,7 @@ def list_transactions(
     end_date: Optional[datetime] = None,
     min_amount: Optional[int] = None,
     max_amount: Optional[int] = None,
+    search: Optional[str] = Query(None, description="Search term for description"),
     sort_by: str = Query(
         "occurred_at", pattern="^(occurred_at|amount_cents|category_id)$"
     ),
@@ -111,6 +112,10 @@ def list_transactions(
 
     if max_amount is not None:
         query = query.filter(models.Transaction.amount_cents <= max_amount)
+
+    if search:
+        # Case-insensitive search on description
+        query = query.filter(models.Transaction.description.ilike(f"%{search}%"))
 
     # Apply sorting
     sort_column = getattr(models.Transaction, sort_by)

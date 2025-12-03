@@ -50,6 +50,33 @@ test: ## run backend tests
 	docker compose exec backend pytest -v
 
 # ============================================
+# E2E & Integration Testing
+# ============================================
+
+test-frontend: ## run frontend unit tests
+	docker compose exec web npm test -- --run
+
+e2e-install: ## install Cypress and E2E dependencies
+	docker compose exec web npm install cypress start-server-and-test
+
+e2e-open: ## open Cypress test runner (interactive)
+	cd frontend && npm run cy:open
+
+e2e-run: ## run Cypress tests headlessly
+	cd frontend && npm run cy:run
+
+e2e: ## run full E2E test suite (starts servers)
+	cd frontend && npm run e2e
+
+test-all: ## run all tests (backend + frontend + e2e)
+	@echo "=== Running Backend Tests ==="
+	docker compose exec backend pytest -v
+	@echo "\n=== Running Frontend Unit Tests ==="
+	docker compose exec web npm test -- --run
+	@echo "\n=== Running E2E Tests ==="
+	cd frontend && npm run e2e
+
+# ============================================
 # Production Commands
 # ============================================
 

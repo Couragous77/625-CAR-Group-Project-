@@ -122,12 +122,12 @@ export default function Login() {
           <h2 id="loginTitle" style={{ marginTop: 0 }}>Log in</h2>
 
           {error && (
-            <div className="error show" role="alert">
+            <div className="error show" role="alert" data-testid="login-error">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} data-testid="login-form">
             <div className="field">
               <label htmlFor="email">Email</label>
               <input
@@ -192,7 +192,7 @@ export default function Login() {
               <Link to="/forgot-password" className="hint">Forgot password?</Link>
             </div>
 
-            <button className="btn primary" type="submit" disabled={isLoading}>
+            <button className="btn primary" type="submit" disabled={isLoading} data-testid="login-submit">
               {isLoading ? (
                 <>
                   <span className="spinner"></span>
