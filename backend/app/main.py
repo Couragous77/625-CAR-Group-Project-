@@ -12,7 +12,7 @@ from .files_router import ensure_upload_dir, router as files_router
 from .goals_router import router as goals_router
 from .password_reset_router import router as password_reset_router
 from .transactions_router import router as transactions_router
-
+from .notifications_router import router as notifications_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -85,8 +85,8 @@ app.include_router(categories_router, prefix="/api/categories", tags=["categorie
 app.include_router(goals_router)
 app.include_router(transactions_router)
 app.include_router(files_router)
-
+app.include_router(notifications_router)
 
 # Future routers to be added:
-# from app.routers import notifications
+# from app.routers import notifications (RQ added)
 # app.include_router(notifications.router, prefix="/api/notifications", tags=["notifications"])
