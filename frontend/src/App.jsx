@@ -19,6 +19,7 @@ import Privacy from './pages/Privacy';
 import About from './pages/About';
 import Help from './pages/Help';
 import './styles/common.css';
+import SavingsGoals from './pages/SavingsGoals';
 
 // Protected Route wrapper
 function ProtectedRoute({ children }) {
@@ -159,7 +160,16 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-
+      <Route
+        path="/savings-goals"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <SavingsGoals />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
       {/* 404 Not Found - catch all unknown routes */}
       <Route path="*" element={<Layout><NotFound /></Layout>} />
     </Routes>
