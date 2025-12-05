@@ -11,8 +11,15 @@ import SpendingPieChart from '../components/charts/SpendingPieChart';
 import TrendsBarChart from '../components/charts/TrendsBarChart';
 import DashboardFilters from '../components/DashboardFilters';
 import PiggyBank from '../components/PiggyBank';
+import { useToast } from "../context/ToastContext";
+import { calculateLowFunds } from "../services/notificationService";
+import SavingsProgressBar from "../components/goals/SavingsProgressBar";
+import { getWeeklySavingsGoal } from "../services/savingsGoalService";
+
 
 function Dashboard() {
+  const { showToast } = useToast();
+  const weeklyGoal = getWeeklySavingsGoal();
   const { getToken } = useAuth();
   const [recentIncome, setRecentIncome] = useState([]);
   const [recentTransactions, setRecentTransactions] = useState([]);
@@ -59,6 +66,26 @@ function Dashboard() {
   useEffect(() => {
     loadAnalyticsData();
   }, [filters]);
+  useEffect(() => {
+    async function checkLowFunds() {
+      try {
+        const result = await calculateLowFunds();
+
+        if (result.count > 0) {
+          result.envelopes.forEach(env => {
+            showToast(
+              `Low Funds: ${env.name} — ${env.reason}`,
+              "warning"
+            );
+          });
+        }
+      } catch (err) {
+        console.error("Low funds alert failed:", err);
+      }
+    }
+
+    checkLowFunds();
+  }, []);
 
   /**
    * Load categories and recent income for current month
@@ -514,6 +541,20 @@ function Dashboard() {
               </Link>
             </>
           )}
+        </article>
+       
+        {/* Weekly Savings Goal Progress */}
+        <article className="card" aria-labelledby="weekly-savings-progress-title">
+          <h2 id="weekly-savings-progress-title">Weekly Savings Progress</h2>
+
+          <SavingsProgressBar
+            currentAmount={weeklyGoal.currentAmount}
+            targetAmount={weeklyGoal.targetAmount}
+          />
+
+          <p className="muted" style={{ marginTop: "0.5rem" }}>
+            Week: {weeklyGoal.weekLabel || "Not set"}
+          </p>
         </article>
 
         {/* Row 2: Savings Progress, Quick Add Expense, Recent Transactions */}
