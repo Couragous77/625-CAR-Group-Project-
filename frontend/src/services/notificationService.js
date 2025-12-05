@@ -21,3 +21,9 @@ export async function sendLowFundsTestEmail(envelopes, options = {}) {
   const response = await api.post("/notifications/low-funds/test-email", payload);
   return response.data;
 }
+
+export async function calculateLowFunds() {
+  const response = await api.get("/notifications/low-funds/check");
+  return response.data;
+}
+
