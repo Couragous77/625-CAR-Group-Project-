@@ -10,6 +10,11 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "cy:run:headed": "cypress run --headed",
+    "e2e": "start-server-and-test dev http://localhost:5173 cy:run",
+    "e2e:open": "start-server-and-test dev http://localhost:5173 cy:open",
     "lint": "echo \"(add eslint when ready)\"",
     "start:all": "echo \"Use 'make up' to run with Docker Compose\""
   },
@@ -22,7 +27,9 @@
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
     "@vitest/ui": "^1.0.4",
+    "cypress": "^13.17.0",
     "jsdom": "^23.0.1",
+    "start-server-and-test": "^2.1.3",
     "vite": "^5.4.8",
     "vitest": "^1.0.4"
   }

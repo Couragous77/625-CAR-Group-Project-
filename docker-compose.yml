@@ -26,6 +26,7 @@ services:
       PYTHONPATH: /app
       DATABASE_URL: ${DATABASE_URL}
       CORS_ORIGINS: ${CORS_ORIGINS}
+      UPLOAD_DIR: /app/uploads
     volumes:
       - ./backend:/app
       - uploads:/app/uploads

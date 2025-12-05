@@ -178,7 +178,7 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
   }
   
   return (
-    <form onSubmit={handleSubmit} className="transaction-form">
+    <form onSubmit={handleSubmit} className="transaction-form" data-testid="transaction-form">
       {/* Amount */}
       <div className="field">
         <label htmlFor="amount">
@@ -196,6 +196,7 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
           onChange={handleChange}
           className={errors.amount ? 'error' : ''}
           disabled={loading}
+          data-testid="amount-input"
         />
         {errors.amount && <span className="error-message">{errors.amount}</span>}
       </div>
@@ -214,6 +215,7 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
               onChange={handleChange}
               className={errors.category_id ? 'error' : ''}
               disabled={loading}
+              data-testid="category-select"
             >
               <option value="">Select category</option>
               {categories.map(cat => (
@@ -291,7 +293,7 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
       
       {/* Actions */}
       <div className="form-actions">
-        <button type="submit" className="btn primary" disabled={loading}>
+        <button type="submit" className="btn primary" disabled={loading} data-testid="submit-transaction">
           {loading ? 'Saving...' : transaction ? `Update ${transactionType === 'income' ? 'Income' : 'Expense'}` : `Add ${transactionType === 'income' ? 'Income' : 'Expense'}`}
         </button>
         {onCancel && (

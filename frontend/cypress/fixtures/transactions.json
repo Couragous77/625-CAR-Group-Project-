@@ -1,0 +1,36 @@
+{
+  "expenses": [
+    {
+      "amount": 25.50,
+      "description": "Coffee and snacks",
+      "category": "Food & Dining"
+    },
+    {
+      "amount": 150.00,
+      "description": "Textbooks",
+      "category": "Education"
+    },
+    {
+      "amount": 45.00,
+      "description": "Bus pass",
+      "category": "Transportation"
+    }
+  ],
+  "categories": {
+    "expense": [
+      "Food & Dining",
+      "Transportation",
+      "Education",
+      "Entertainment",
+      "Utilities",
+      "Other"
+    ],
+    "income": [
+      "Salary",
+      "Freelance",
+      "Gifts",
+      "Refunds",
+      "Other"
+    ]
+  }
+}

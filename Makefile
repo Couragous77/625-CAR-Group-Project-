@@ -1,9 +1,14 @@
 ENV ?= .env
+PROD_ENV ?= .env.prod
 
-up: ## build & run all
+# ============================================
+# Development Commands
+# ============================================
+
+up: ## build & run all (development)
 	docker compose --env-file $(ENV) up --build
 
-down: ## stop
+down: ## stop all containers
 	docker compose down
 
 logs: ## tail logs
@@ -41,5 +46,96 @@ we-dev: ## run frontend dev server (if not already running)
 fmt: ## placeholder for formatters
 	@echo "Add black/ruff/eslint here"
 
+test: ## run backend tests
+	docker compose exec backend pytest -v
+
+# ============================================
+# E2E & Integration Testing
+# ============================================
+
+test-frontend: ## run frontend unit tests
+	docker compose exec web npm test -- --run
+
+e2e-install: ## install Cypress and E2E dependencies
+	docker compose exec web npm install cypress start-server-and-test
+
+e2e-open: ## open Cypress test runner (interactive)
+	cd frontend && npm run cy:open
+
+e2e-run: ## run Cypress tests headlessly
+	cd frontend && npm run cy:run
+
+e2e: ## run full E2E test suite (starts servers)
+	cd frontend && npm run e2e
+
+test-all: ## run all tests (backend + frontend + e2e)
+	@echo "=== Running Backend Tests ==="
+	docker compose exec backend pytest -v
+	@echo "\n=== Running Frontend Unit Tests ==="
+	docker compose exec web npm test -- --run
+	@echo "\n=== Running E2E Tests ==="
+	cd frontend && npm run e2e
+
+# ============================================
+# Production Commands
+# ============================================
+
+prod-up: ## build & run production containers
+	docker compose -f docker-compose.prod.yml --env-file $(PROD_ENV) up -d --build
+
+prod-down: ## stop production containers
+	docker compose -f docker-compose.prod.yml down
+
+prod-logs: ## tail production logs
+	docker compose -f docker-compose.prod.yml logs -f
+
+prod-migrate: ## run migrations in production
+	docker compose -f docker-compose.prod.yml exec backend alembic upgrade head
+
+prod-health: ## check health of all production services
+	@echo "=== Backend Health ==="
+	@curl -s http://localhost:8000/health/ready | python3 -m json.tool || echo "Backend unhealthy"
+	@echo "\n=== Frontend Health ==="
+	@curl -s http://localhost:80/health || echo "Frontend unhealthy"
+	@echo "\n=== Container Status ==="
+	@docker compose -f docker-compose.prod.yml ps
+
+prod-backup: ## backup production database
+	@mkdir -p backups
+	docker compose -f docker-compose.prod.yml exec db pg_dump -U $$POSTGRES_USER $$POSTGRES_DB > backups/backup_$$(date +%Y%m%d_%H%M%S).sql
+	@echo "Backup saved to backups/"
+
+prod-shell: ## shell into production backend
+	docker compose -f docker-compose.prod.yml exec backend bash
+
+prod-db: ## psql into production database
+	docker compose -f docker-compose.prod.yml exec db psql -U $$POSTGRES_USER -d $$POSTGRES_DB
+
+# ============================================
+# Build & Deployment Scripts Commands
+# ============================================
+
+build-images: ## build production Docker images
+	./scripts/build-images.sh
+
+push-images: ## push images to registry (requires REGISTRY env var)
+	./scripts/push-images.sh
+
+smoke-test: ## run container smoke tests
+	./scripts/smoke-test.sh
+
+verify-env: ## verify environment variables (usage: make verify-env ENV=prod)
+	./scripts/verify-env.sh $(if $(filter prod,$(ENV)),prod,$(if $(filter stage,$(ENV)),stage,dev))
+
+verify-dev: ## verify development environment
+	./scripts/verify-env.sh dev
+
+verify-prod: ## verify production environment
+	./scripts/verify-env.sh prod
+
+# ============================================
+# Help
+# ============================================
+
 help:
-	@grep -E '^[a-zA-Z_-]+:.*?##' Makefile | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}"
+	@grep -E '^[a-zA-Z_-]+:.*?##' Makefile | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'

@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 # ================================
@@ -72,8 +72,7 @@ class GoalOut(BaseModel):
     target_date: Optional[datetime]
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserCreate(BaseModel):
@@ -96,8 +95,7 @@ class UserResponse(BaseModel):
     role: str
     goals: list[GoalOut] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserOut(BaseModel):
@@ -111,8 +109,7 @@ class UserOut(BaseModel):
     role: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserUpdate(BaseModel):
@@ -146,8 +143,7 @@ class CategoryOut(BaseModel):
     monthly_limit_cents: Optional[int]
     is_default: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ================================
@@ -228,5 +224,4 @@ class NotificationPreferenceOut(BaseModel):
     low_balance_threshold_cents: Optional[int]
     quiet_hours: Optional[dict]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

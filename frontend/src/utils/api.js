@@ -40,6 +40,11 @@ export async function apiRequest(endpoint, options = {}, token = null) {
   try {
     const response = await fetch(url, config);
     
+    // Handle 204 No Content - return null immediately
+    if (response.status === 204) {
+      return null;
+    }
+    
     // Try to parse response body
     let data;
     const contentType = response.headers.get('content-type');

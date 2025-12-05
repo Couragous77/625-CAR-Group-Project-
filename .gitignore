@@ -2,4 +2,31 @@ node_modules
 dist
 build
 .env
+.env.prod
 .DS_Store
+
+# Backups
+backups/
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.coverage
+htmlcov
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Cypress
+cypress/videos
+cypress/screenshots
+cypress/downloads
+
