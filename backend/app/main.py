@@ -14,6 +14,7 @@ from .password_reset_router import router as password_reset_router
 from .transactions_router import router as transactions_router
 from .notifications_router import router as notifications_router
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events."""
