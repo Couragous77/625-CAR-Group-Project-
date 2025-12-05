@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import PiggyBank from '../components/PiggyBank';
+import { listTransactions } from '../services/transactionService';
+import { formatCurrency } from '../utils/currency';
 
 function Profile() {
   const { user, getToken, saveProfile, loading: authLoading } = useAuth();
