@@ -10,10 +10,10 @@ import { formatDate, formatDateShort } from '../utils/date';
 import SpendingPieChart from '../components/charts/SpendingPieChart';
 import TrendsBarChart from '../components/charts/TrendsBarChart';
 import DashboardFilters from '../components/DashboardFilters';
+import SavingsProgressBar from '../components/SavingsProgressBar';
 import PiggyBank from '../components/PiggyBank';
 import { useToast } from "../context/ToastContext";
 import { calculateLowFunds } from "../services/notificationService";
-import SavingsProgressBar from "../components/goals/SavingsProgressBar";
 import { getWeeklySavingsGoal } from "../services/savingsGoalService";
 
 
