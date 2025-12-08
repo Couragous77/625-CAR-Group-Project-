@@ -1058,36 +1058,7 @@ textarea {
     display: block;
 }
 
-/* Toast Notifications */
-.toast {
-    position: fixed;
-    right: 16px;
-    bottom: 16px;
-    background: #fff;
-    border: 1px solid var(--border);
-    padding: 12px 14px;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    opacity: 0;
-    transform: translateY(8px);
-    transition: 0.25s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    z-index: 1000;
-}
 
-.toast.show {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.toast .dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--brand-600);
-}
 
 /* ========================================
    LISTS & TABLES
@@ -1128,7 +1099,7 @@ th {
    PROGRESS BARS
    ======================================== */
 .progress {
-    height: 12px;
+    height: 30px;
     background: #e7ece9;
     border-radius: 999px;
     overflow: hidden;
