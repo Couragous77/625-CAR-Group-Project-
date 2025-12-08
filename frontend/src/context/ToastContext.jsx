@@ -12,17 +12,25 @@ export function ToastProvider({ children }) {
     
     setToasts(prev => [...prev, toast]);
     
-    // Auto-remove after 5 seconds
+    // Auto-remove after 8 seconds
     setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 5000);
+    removeToast(id);
+    }, 8000);
+
     
     return id;
   }, []);
 
-  const removeToast = useCallback((id) => {
+ const removeToast = useCallback((id) => {
+  setToasts(prev =>
+    prev.map(t => t.id === id ? { ...t, exiting: true } : t)
+  );
+
+  setTimeout(() => {
     setToasts(prev => prev.filter(t => t.id !== id));
-  }, []);
+  }, 300); // match slideOut duration
+}, []);
+
 
   const success = useCallback((message) => addToast(message, 'success'), [addToast]);
   const error = useCallback((message) => addToast(message, 'error'), [addToast]);
@@ -38,10 +46,11 @@ export function ToastProvider({ children }) {
       <div className="toast-container">
         {toasts.map(toast => (
           <div 
-            key={toast.id} 
-            className={`toast toast-${toast.type}`}
-            onClick={() => removeToast(toast.id)}
-          >
+          key={toast.id} 
+          className={`toast toast-${toast.type} ${toast.exiting ? "exit" : ""}`}
+          onClick={() => removeToast(toast.id)}
+>
+
             <span className="toast-icon">
               {toast.type === 'success' && '✓'}
               {toast.type === 'error' && '✕'}
