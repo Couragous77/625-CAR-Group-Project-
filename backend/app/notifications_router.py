@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, EmailStr
 from .notifications import find_low_funds_envelopes
 from .email_service import send_email_notification

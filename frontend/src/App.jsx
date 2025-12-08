@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { NotificationProvider } from './context/NotificationContext';
 import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
 import Landing from './pages/Landing';
@@ -180,10 +181,12 @@ export default function App() {
   return (
     <AuthProvider>
       <ToastProvider>
-        <Router>
-          <ScrollToTop />
-          <AppRoutes />
-        </Router>
+        <NotificationProvider>
+          <Router>
+            <ScrollToTop />
+            <AppRoutes />
+          </Router>
+        </NotificationProvider>
       </ToastProvider>
     </AuthProvider>
   );
