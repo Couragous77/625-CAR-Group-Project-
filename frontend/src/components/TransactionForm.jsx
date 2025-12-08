@@ -7,17 +7,23 @@ import { getTodayString, toISOString } from '../utils/date';
 import { dollarsToCents, centsToDollars } from '../utils/currency';
 import Spinner from './Spinner';
 import '../styles/transactionForm.css';
+import { updateWeeklySavingsProgress } from "../services/savingsGoalService";
 
-export default function TransactionForm({ transaction = null, onSuccess, onCancel, transactionType = 'expense' }) {
+export default function TransactionForm({
+  transaction = null,
+  onSuccess,
+  onCancel,
+  transactionType = 'expense',
+}) {
   const { getToken } = useAuth();
   const toast = useToast();
-  
+
   const [loading, setLoading] = useState(false);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [categories, setCategories] = useState([]);
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
-  
+
   // Form state
   const [formData, setFormData] = useState({
     amount: '',
@@ -25,14 +31,14 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
     occurred_at: getTodayString(),
     description: '',
   });
-  
+
   // Error state
   const [errors, setErrors] = useState({});
-  
+
   // Load initial data
   useEffect(() => {
     loadCategories();
-    
+
     // If editing, populate form
     if (transaction) {
       setFormData({
@@ -43,7 +49,7 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
       });
     }
   }, [transaction]);
-  
+
   async function loadCategories() {
     try {
       setLoadingCategories(true);
@@ -57,23 +63,23 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
       setLoadingCategories(false);
     }
   }
-  
+
   function validateForm() {
     const newErrors = {};
-    
+
     // Amount validation
     const amount = parseFloat(formData.amount);
-    if (!formData.amount || isNaN(amount)) {
+    if (!formData.amount || Number.isNaN(amount)) {
       newErrors.amount = 'Amount is required';
     } else if (amount <= 0) {
       newErrors.amount = 'Amount must be greater than 0';
     }
-    
+
     // Category validation
     if (!formData.category_id) {
       newErrors.category_id = 'Category is required';
     }
-    
+
     // Date validation
     if (!formData.occurred_at) {
       newErrors.occurred_at = 'Date is required';
@@ -81,27 +87,27 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
       const selectedDate = new Date(formData.occurred_at);
       const today = new Date();
       today.setHours(23, 59, 59, 999); // End of today
-      
+
       if (selectedDate > today) {
         newErrors.occurred_at = 'Date cannot be in the future';
       }
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }
-  
+
   async function handleSubmit(e) {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     try {
       setLoading(true);
       const token = getToken();
-      
+
       const payload = {
         type: transactionType,
         amount_cents: dollarsToCents(formData.amount),
@@ -109,19 +115,31 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
         occurred_at: toISOString(formData.occurred_at),
         description: formData.description || null,
       };
-      
+
       const itemName = transactionType === 'income' ? 'Income' : 'Expense';
-      
+
       if (transaction) {
-        // Update existing
+        // 🔄 Update existing transaction (do NOT adjust weekly savings here to avoid weird jumps)
         await updateTransaction(transaction.id, payload, token);
         toast.success(`${itemName} updated successfully`);
       } else {
-        // Create new
+        // 🆕 Create new transaction
         await createTransaction(payload, token);
         toast.success(`${itemName} added successfully`);
+
+        // 🔹 Update Weekly Savings Progress (local-only, dollars)
+        const amountNumber = parseFloat(formData.amount);
+        if (!Number.isNaN(amountNumber)) {
+          if (transactionType === "income") {
+            // Income increases savings
+            updateWeeklySavingsProgress(amountNumber);
+          } else if (transactionType === "expense") {
+            // Expenses decrease savings
+            updateWeeklySavingsProgress(-amountNumber);
+          }
+        }
       }
-      
+
       // Reset form
       setFormData({
         amount: '',
@@ -130,7 +148,7 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
         description: '',
       });
       setErrors({});
-      
+
       if (onSuccess) {
         onSuccess();
       }
@@ -140,19 +158,22 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
       setLoading(false);
     }
   }
-  
+
   async function handleCreateCategory() {
     if (!newCategoryName.trim()) {
       toast.error('Category name is required');
       return;
     }
-    
+
     try {
       const token = getToken();
-      const newCat = await createCategory({ 
-        name: newCategoryName, 
-        type: transactionType 
-      }, token);
+      const newCat = await createCategory(
+        {
+          name: newCategoryName,
+          type: transactionType,
+        },
+        token
+      );
       setCategories([...categories, newCat]);
       setFormData({ ...formData, category_id: newCat.id });
       setNewCategoryName('');
@@ -162,23 +183,27 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
       toast.error('Failed to create category');
     }
   }
-  
+
   function handleChange(e) {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
     // Clear error for this field
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   }
-  
+
   if (loadingCategories) {
     return <Spinner size="small" message="Loading..." />;
   }
-  
+
   return (
-    <form onSubmit={handleSubmit} className="transaction-form" data-testid="transaction-form">
+    <form
+      onSubmit={handleSubmit}
+      className="transaction-form"
+      data-testid="transaction-form"
+    >
       {/* Amount */}
       <div className="field">
         <label htmlFor="amount">
@@ -198,9 +223,11 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
           disabled={loading}
           data-testid="amount-input"
         />
-        {errors.amount && <span className="error-message">{errors.amount}</span>}
+        {errors.amount && (
+          <span className="error-message">{errors.amount}</span>
+        )}
       </div>
-      
+
       {/* Category */}
       <div className="field">
         <label htmlFor="category_id">
@@ -218,7 +245,7 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
               data-testid="category-select"
             >
               <option value="">Select category</option>
-              {categories.map(cat => (
+              {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
                 </option>
@@ -240,10 +267,17 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
               placeholder="Category name"
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleCreateCategory())}
+              onKeyPress={(e) =>
+                e.key === 'Enter' &&
+                (e.preventDefault(), handleCreateCategory())
+              }
               aria-label="New category name"
             />
-            <button type="button" className="btn secondary small" onClick={handleCreateCategory}>
+            <button
+              type="button"
+              className="btn secondary small"
+              onClick={handleCreateCategory}
+            >
               Add
             </button>
             <button
@@ -255,9 +289,11 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
             </button>
           </div>
         )}
-        {errors.category_id && <span className="error-message">{errors.category_id}</span>}
+        {errors.category_id && (
+          <span className="error-message">{errors.category_id}</span>
+        )}
       </div>
-      
+
       {/* Date */}
       <div className="field">
         <label htmlFor="occurred_at">
@@ -273,9 +309,11 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
           className={errors.occurred_at ? 'error' : ''}
           disabled={loading}
         />
-        {errors.occurred_at && <span className="error-message">{errors.occurred_at}</span>}
+        {errors.occurred_at && (
+          <span className="error-message">{errors.occurred_at}</span>
+        )}
       </div>
-      
+
       {/* Description */}
       <div className="field">
         <label htmlFor="description">Description (optional)</label>
@@ -290,14 +328,32 @@ export default function TransactionForm({ transaction = null, onSuccess, onCance
           disabled={loading}
         />
       </div>
-      
+
       {/* Actions */}
       <div className="form-actions">
-        <button type="submit" className="btn primary" disabled={loading} data-testid="submit-transaction">
-          {loading ? 'Saving...' : transaction ? `Update ${transactionType === 'income' ? 'Income' : 'Expense'}` : `Add ${transactionType === 'income' ? 'Income' : 'Expense'}`}
+        <button
+          type="submit"
+          className="btn primary"
+          disabled={loading}
+          data-testid="submit-transaction"
+        >
+          {loading
+            ? 'Saving...'
+            : transaction
+            ? `Update ${
+                transactionType === 'income' ? 'Income' : 'Expense'
+              }`
+            : `Add ${
+                transactionType === 'income' ? 'Income' : 'Expense'
+              }`}
         </button>
         {onCancel && (
-          <button type="button" className="btn secondary" onClick={onCancel} disabled={loading}>
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={onCancel}
+            disabled={loading}
+          >
             Cancel
           </button>
         )}
