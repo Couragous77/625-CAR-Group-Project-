@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { listTransactions, createTransaction } from '../services/transactionService';
@@ -10,16 +10,33 @@ import { formatDate, formatDateShort } from '../utils/date';
 import SpendingPieChart from '../components/charts/SpendingPieChart';
 import TrendsBarChart from '../components/charts/TrendsBarChart';
 import DashboardFilters from '../components/DashboardFilters';
-import SavingsProgressBar from '../components/SavingsProgressBar';
 import PiggyBank from '../components/PiggyBank';
 import { useToast } from "../context/ToastContext";
-import { calculateLowFunds } from "../services/notificationService";
-import { getWeeklySavingsGoal } from "../services/savingsGoalService";
-
+import SavingsProgressBar from "../components/goals/SavingsProgressBar";
+import {
+  getWeeklySavingsGoal,
+  saveWeeklySavingsGoal,
+  updateWeeklySavingsProgress,
+} from "../services/savingsGoalService";
+import { useNotifications } from "../context/NotificationContext";
 
 function Dashboard() {
   const { showToast } = useToast();
-  const weeklyGoal = getWeeklySavingsGoal();
+  const { addNotification } = useNotifications();
+
+  // For envelope change tracking (both low-funds + over-budget)
+  const prevEnvelopesRef = useRef(null);
+  // Gate so alerts only start after user has actually added an expense
+  const alertsEnabledRef = useRef(false);
+
+  const [weeklyGoal, setWeeklyGoal] = useState(() => getWeeklySavingsGoal());
+
+  const [weeklyGoalForm, setWeeklyGoalForm] = useState({
+    targetAmount: weeklyGoal.targetAmount || "",
+    weekLabel: weeklyGoal.weekLabel || "",
+  });
+  const [weeklySavingsInput, setWeeklySavingsInput] = useState("");
+
   const { getToken } = useAuth();
   const [recentIncome, setRecentIncome] = useState([]);
   const [recentTransactions, setRecentTransactions] = useState([]);
@@ -66,26 +83,79 @@ function Dashboard() {
   useEffect(() => {
     loadAnalyticsData();
   }, [filters]);
-  useEffect(() => {
-    async function checkLowFunds() {
-      try {
-        const result = await calculateLowFunds();
 
-        if (result.count > 0) {
-          result.envelopes.forEach(env => {
-            showToast(
-              `Low Funds: ${env.name} — ${env.reason}`,
-              "warning"
-            );
-          });
-        }
-      } catch (err) {
-        console.error("Low funds alert failed:", err);
-      }
+  /**
+   * Envelope alerts (single combined effect)
+   * - Toast: low funds (0–10% remaining, NOT over budget)
+   * - Bell: crosses from not-over to over-budget
+   */
+  useEffect(() => {
+    if (!expenseEnvelopes || expenseEnvelopes.length === 0) {
+      prevEnvelopesRef.current = null;
+      return;
     }
 
-    checkLowFunds();
-  }, []);
+    const threshold = 0.10; // 10% remaining
+    const prev = prevEnvelopesRef.current;
+
+    // Snapshot current envelopes for next run
+    const snapshot = expenseEnvelopes.map((env) => ({
+      id: env.id,
+      remaining: env.remaining,
+      limit: env.limit,
+      isOverBudget: env.isOverBudget,
+    }));
+
+    // Before alerts are enabled, just store baseline and exit
+    if (!alertsEnabledRef.current) {
+      prevEnvelopesRef.current = snapshot;
+      return;
+    }
+
+    expenseEnvelopes.forEach((env) => {
+      if (!env.limit || env.limit <= 0) return;
+
+      const prevEnv = prev?.find((p) => p.id === env.id);
+      const prevRemaining = prevEnv?.remaining;
+      const wasOver = prevEnv?.isOverBudget ?? false;
+      const isOver = env.isOverBudget;
+
+      const remainingRatio = env.remaining / env.limit;
+
+      // 1) LOW FUNDS TOAST (only when NOT over budget)
+      // - Only when remaining is between 0 and 10% of limit
+      // - Fires when:
+      //    • envelope is low and remaining changed, OR
+      //    • envelope just became low
+      if (!isOver) {
+        if (remainingRatio > 0 && remainingRatio <= threshold) {
+          const remainingChanged =
+            prevEnv === undefined || prevRemaining !== env.remaining;
+
+          if (remainingChanged) {
+            const percent = Math.round(remainingRatio * 100);
+            showToast(
+              `Low funds in ${env.name}: ${formatCurrency(env.remaining)} left (${percent}% of ${formatCurrency(env.limit)})`,
+              "warning"
+            );
+          }
+        }
+      }
+
+      // 2) OVER-BUDGET BELL (only when crossing into over-budget)
+      // - Fires when was NOT over budget in prev snapshot and IS over budget now
+      if (!wasOver && isOver) {
+        addNotification({
+          type: "warning",
+          title: "Over budget",
+          message: `${env.name} is over its monthly limit.`,
+        });
+      }
+    });
+
+    // Save snapshot for next comparison
+    prevEnvelopesRef.current = snapshot;
+  }, [expenseEnvelopes, showToast, addNotification]);
 
   /**
    * Load categories and recent income for current month
@@ -99,12 +169,12 @@ function Dashboard() {
       const cats = await listCategories(token);
       setCategories(cats);
 
-      // Calculate current month date range
+      // Current month range
       const now = new Date();
       const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
       const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-      // Fetch income for current month
+      // Income (this month)
       const incomeParams = {
         type: 'income',
         start_date: firstDay.toISOString(),
@@ -119,28 +189,24 @@ function Dashboard() {
       const incomeList = Array.isArray(incomeData) ? incomeData : (incomeData.items || []);
       setRecentIncome(incomeList);
 
-      // Calculate total income for current month
       const totalInc = incomeList.reduce((sum, item) => sum + item.amount_cents, 0);
       setTotalIncome(totalInc);
 
-      // Fetch expenses for current month to calculate envelope spending
+      // Expenses for envelopes
       const expenseParams = {
         type: 'expense',
         start_date: firstDay.toISOString(),
         end_date: lastDay.toISOString(),
         page: 1,
-        limit: 100, // Backend maximum per page
+        limit: 100,
       };
 
       const expenseData = await listTransactions(expenseParams, token);
+      const expenses = Array.isArray(expenseData) ? expenseData : (expenseData.items || []);
 
-      let expenses = Array.isArray(expenseData) ? expenseData : (expenseData.items || []);
-
-      // Calculate total expenses for the month
       const totalExp = expenses.reduce((sum, exp) => sum + exp.amount_cents, 0);
       setTotalExpenses(totalExp);
 
-      // Calculate spending per category for expense envelopes
       const expenseCats = cats.filter(cat => cat.type === 'expense' && cat.monthly_limit_cents);
 
       const envelopesWithSpending = expenseCats.map(cat => {
@@ -156,7 +222,7 @@ function Dashboard() {
           spent,
           limit,
           remaining,
-          percentage: Math.min(percentage, 100), // Cap at 100%
+          percentage: Math.min(percentage, 100),
           isOverBudget: spent > limit,
           isNearLimit: percentage >= 80 && percentage < 100,
         };
@@ -164,7 +230,7 @@ function Dashboard() {
 
       setExpenseEnvelopes(envelopesWithSpending);
 
-      // Fetch recent transactions (all types, most recent 5)
+      // Recent transactions (all types)
       const recentParams = {
         page: 1,
         limit: 5,
@@ -181,17 +247,43 @@ function Dashboard() {
       console.error('Error message:', error.message);
       console.error('Error status:', error.status);
       console.error('Error data:', error.data);
-
-      // Handle validation errors specifically
-      if (error.status === 422 && error.data?.detail) {
-        if (Array.isArray(error.data.detail)) {
-          const messages = error.data.detail.map(err => `${err.loc?.join('.')}: ${err.msg}`).join(', ');
-          console.error('Validation errors:', messages);
-        }
-      }
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleWeeklyGoalSubmit(e) {
+    e.preventDefault();
+
+    const target = Number(weeklyGoalForm.targetAmount);
+    if (Number.isNaN(target) || target <= 0) {
+      showToast("Please enter a valid weekly target greater than 0.", "error");
+      return;
+    }
+
+    const updated = saveWeeklySavingsGoal({
+      targetAmount: target,
+      currentAmount: weeklyGoal.currentAmount || 0,
+      weekLabel: weeklyGoalForm.weekLabel.trim() || "This week",
+    });
+
+    setWeeklyGoal(updated);
+    showToast("Weekly savings goal saved.", "success");
+  }
+
+  function handleAddWeeklySavings(e) {
+    e.preventDefault();
+
+    const delta = Number(weeklySavingsInput);
+    if (Number.isNaN(delta) || delta <= 0) {
+      showToast("Enter an amount greater than 0 to add to this week.", "error");
+      return;
+    }
+
+    const updated = updateWeeklySavingsProgress(delta);
+    setWeeklyGoal(updated);
+    setWeeklySavingsInput("");
+    showToast(`Added $${delta.toFixed(2)} to this week's savings.`, "success");
   }
 
   /**
@@ -207,7 +299,6 @@ function Dashboard() {
         return;
       }
 
-      // Build params from filters
       const params = {
         period: filters.period,
       };
@@ -219,19 +310,16 @@ function Dashboard() {
         params.endDate = new Date(filters.endDate).toISOString();
       }
 
-      // Add category filter if categories are selected
       if (filters.categories && filters.categories.length > 0) {
         params.categoryIds = filters.categories;
       }
 
-      // Load spending by category (expenses only)
       const spendingResult = await getSpendingByCategory({
         ...params,
         type: 'expense',
       }, token);
       setSpendingData(spendingResult.aggregates || []);
 
-      // Load trends data (both income and expenses for net savings calculation)
       const trendsResult = await getTrendsByPeriod(params, token);
       setTrendsData(trendsResult.aggregates || []);
 
@@ -243,16 +331,10 @@ function Dashboard() {
     }
   }
 
-  /**
-   * Handle filter changes from DashboardFilters component
-   */
   function handleFiltersChange(newFilters) {
     setFilters(newFilters);
   }
 
-  /**
-   * Load goals for current user
-   */
   async function loadGoals() {
     try {
       setLoadingGoals(true);
@@ -267,18 +349,12 @@ function Dashboard() {
     }
   }
 
-  /**
-   * Get category name by ID
-   */
   function getCategoryName(categoryId) {
     if (!categoryId) return 'Uncategorized';
     const category = categories.find((c) => c.id === categoryId);
     return category ? category.name : 'Unknown';
   }
 
-  /**
-   * Handle quick expense form submission
-   */
   async function handleQuickExpenseSubmit(e) {
     e.preventDefault();
 
@@ -301,14 +377,19 @@ function Dashboard() {
 
       await createTransaction(expenseData, token);
 
-      // Reset form
+      // Update weekly goal progress (spending reduces savings)
+      const updatedGoal = updateWeeklySavingsProgress(-expenseData.amount_cents / 100);
+      setWeeklyGoal(updatedGoal);
+
       setQuickExpense({
         amount: '',
         category_id: '',
         description: '',
       });
 
-      // Refresh dashboard data
+      // ✅ From now on, enable low-funds + over-budget alerts for THIS session
+      alertsEnabledRef.current = true;
+
       await loadDashboardData();
       await loadAnalyticsData();
 
@@ -320,9 +401,6 @@ function Dashboard() {
     }
   }
 
-  /**
-   * Handle create goal form submission
-   */
   async function handleCreateGoalSubmit(e) {
     e.preventDefault();
 
@@ -367,8 +445,6 @@ function Dashboard() {
     <div className="wrap" style={{ gridTemplateColumns: '1fr' }}>
       {/* Main 3x2 Grid */}
       <section className="grid grid-cols-3" aria-label="Dashboard overview">
-        {/* Row 1: Monthly Summary, Income, Budget Envelopes */}
-        
         {/* Monthly Financial Summary */}
         <article className="card" aria-labelledby="balances-title">
           <h2 id="balances-title">Monthly Financial Summary</h2>
@@ -376,7 +452,6 @@ function Dashboard() {
             <p className="muted">Loading summary...</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {/* Income */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>Total Income</span>
                 <strong style={{ color: 'var(--success)', fontSize: '1.1rem' }}>
@@ -386,7 +461,6 @@ function Dashboard() {
 
               <div className="divider"></div>
 
-              {/* Expenses */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>Total Expenses</span>
                 <strong style={{ color: 'var(--warn)', fontSize: '1.1rem' }}>
@@ -396,7 +470,6 @@ function Dashboard() {
 
               <div className="divider"></div>
 
-              {/* Net Savings */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <strong>Net Savings</strong>
                 <strong style={{
@@ -408,7 +481,6 @@ function Dashboard() {
                 </strong>
               </div>
 
-              {/* Savings Rate */}
               {totalIncome > 0 && (
                 <>
                   <div className="divider"></div>
@@ -485,16 +557,22 @@ function Dashboard() {
             <>
               <ul className="list" style={{ gap: '0.75rem' }}>
                 {expenseEnvelopes.map((envelope) => (
-                  <li key={envelope.id} style={{ flexDirection: 'column', alignItems: 'stretch', gap: '0.4rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <li
+                    key={envelope.id}
+                    style={{ flexDirection: 'column', alignItems: 'stretch', gap: '0.4rem' }}
+                  >
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
                       <strong style={{ fontSize: '0.9rem' }}>{envelope.name}</strong>
                       <span className="muted" style={{ fontSize: '0.8125rem', whiteSpace: 'nowrap' }}>
                         {formatCurrency(envelope.spent)} / {formatCurrency(envelope.limit)}
                       </span>
                     </div>
 
-                    {/* Progress bar */}
-                    <div 
+                    <div
                       role="progressbar"
                       aria-valuenow={Math.round(envelope.percentage)}
                       aria-valuemin={0}
@@ -508,21 +586,27 @@ function Dashboard() {
                         overflow: 'hidden'
                       }}
                     >
-                      <div style={{
-                        width: `${envelope.percentage}%`,
-                        height: '100%',
-                        backgroundColor: envelope.isOverBudget
-                          ? 'var(--danger, #ef4444)'
-                          : envelope.isNearLimit
-                          ? 'var(--warn, #f59e0b)'
-                          : 'var(--success, #10b981)',
-                        transition: 'width 0.3s ease'
-                      }}></div>
+                      <div
+                        style={{
+                          width: `${envelope.percentage}%`,
+                          height: '100%',
+                          backgroundColor: envelope.isOverBudget
+                            ? 'var(--danger, #ef4444)'
+                            : envelope.isNearLimit
+                            ? 'var(--warn, #f59e0b)'
+                            : 'var(--success, #10b981)',
+                          transition: 'width 0.3s ease'
+                        }}
+                      ></div>
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
                       <span style={{
-                        color: envelope.isOverBudget ? 'var(--danger)' : envelope.remaining > 0 ? 'var(--success)' : 'var(--muted)'
+                        color: envelope.isOverBudget
+                          ? 'var(--danger)'
+                          : envelope.remaining > 0
+                          ? 'var(--success)'
+                          : 'var(--muted)'
                       }}>
                         {envelope.isOverBudget ? 'Over budget' : `${formatCurrency(envelope.remaining)} left`}
                       </span>
@@ -542,7 +626,7 @@ function Dashboard() {
             </>
           )}
         </article>
-       
+
         {/* Weekly Savings Goal Progress */}
         <article className="card" aria-labelledby="weekly-savings-progress-title">
           <h2 id="weekly-savings-progress-title">Weekly Savings Progress</h2>
@@ -555,11 +639,50 @@ function Dashboard() {
           <p className="muted" style={{ marginTop: "0.5rem" }}>
             Week: {weeklyGoal.weekLabel || "Not set"}
           </p>
+          <div className="divider" style={{ margin: "1rem 0" }}></div>
+
+          <h3 style={{ marginBottom: "0.5rem" }}>Set Weekly Goal</h3>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const newGoal = {
+                targetAmount: Number(e.target.targetAmount.value),
+                currentAmount: 0,
+                weekLabel: e.target.weekLabel.value || "",
+              };
+              saveWeeklySavingsGoal(newGoal);
+              showToast("Weekly savings goal updated!", "success");
+              window.location.reload();
+            }}
+          >
+            <div className="field">
+              <label>Target Amount ($)</label>
+              <input
+                type="number"
+                name="targetAmount"
+                step="0.01"
+                required
+                placeholder="e.g., 100"
+              />
+            </div>
+
+            <div className="field">
+              <label>Week Label</label>
+              <input
+                type="text"
+                name="weekLabel"
+                placeholder="e.g., Week of Dec 1–7"
+              />
+            </div>
+
+            <button className="btn primary" type="submit">
+              Save Weekly Goal
+            </button>
+          </form>
         </article>
 
-        {/* Row 2: Savings Progress, Quick Add Expense, Recent Transactions */}
-
-        {/* Goals */}
+        {/* Savings Goals */}
         <article className="card" aria-labelledby="goals-title">
           <h2 id="goals-title">Savings Goals</h2>
           {loadingGoals ? (
@@ -567,23 +690,34 @@ function Dashboard() {
           ) : goals.length === 0 ? (
             <p className="muted">No goals yet. Create your first goal below.</p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '400px', overflowY: 'auto' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+                maxHeight: '400px',
+                overflowY: 'auto'
+              }}
+            >
               {goals.map((goal) => {
                 const currentSavings = Math.max(0, totalIncome - totalExpenses);
                 return (
-                  <div key={goal.id} style={{ 
-                    padding: '1rem', 
-                    border: '1px solid var(--border)', 
-                    borderRadius: '8px',
-                    backgroundColor: 'var(--bg-secondary)'
-                  }}>
+                  <div
+                    key={goal.id}
+                    style={{
+                      padding: '1rem',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      backgroundColor: 'var(--bg-secondary)'
+                    }}
+                  >
                     <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>{goal.name}</h3>
                     {goal.target_date && (
                       <p className="muted" style={{ fontSize: '0.875rem', marginBottom: '0.75rem' }}>
                         Target: {formatDate(goal.target_date)}
                       </p>
                     )}
-                    <PiggyBank 
+                    <PiggyBank
                       currentSavings={currentSavings}
                       savingsGoal={goal.target_cents}
                       compact={true}
@@ -657,7 +791,7 @@ function Dashboard() {
                 inputMode="decimal"
                 placeholder="e.g., 12.99"
                 value={quickExpense.amount}
-                onChange={(e) => setQuickExpense({...quickExpense, amount: e.target.value})}
+                onChange={(e) => setQuickExpense({ ...quickExpense, amount: e.target.value })}
                 required
                 disabled={submittingExpense}
               />
@@ -668,7 +802,7 @@ function Dashboard() {
                 id="quick-category"
                 name="category"
                 value={quickExpense.category_id}
-                onChange={(e) => setQuickExpense({...quickExpense, category_id: e.target.value})}
+                onChange={(e) => setQuickExpense({ ...quickExpense, category_id: e.target.value })}
                 required
                 disabled={submittingExpense}
               >
@@ -688,13 +822,13 @@ function Dashboard() {
                 type="text"
                 placeholder="e.g., Coffee at Starbucks"
                 value={quickExpense.description}
-                onChange={(e) => setQuickExpense({...quickExpense, description: e.target.value})}
+                onChange={(e) => setQuickExpense({ ...quickExpense, description: e.target.value })}
                 disabled={submittingExpense}
               />
             </div>
-            <button 
-              className="btn primary" 
-              type="submit" 
+            <button
+              className="btn primary"
+              type="submit"
               disabled={submittingExpense}
               aria-disabled={submittingExpense}
               aria-label={submittingExpense ? 'Adding expense' : 'Add expense'}
@@ -726,7 +860,7 @@ function Dashboard() {
                   {recentTransactions.map((transaction) => (
                     <tr key={transaction.id}>
                       <td style={{ whiteSpace: 'nowrap' }}>{formatDateShort(transaction.occurred_at)}</td>
-                      <td style={{ 
+                      <td style={{
                         maxWidth: '200px',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -762,15 +896,12 @@ function Dashboard() {
       >
         <h2 style={{ marginBottom: '1rem' }}>Budget Insights</h2>
 
-        {/* Filters */}
         <DashboardFilters
           onFiltersChange={handleFiltersChange}
           initialFilters={filters}
         />
 
-        {/* Charts Grid */}
         <div className="grid grid-cols-2" style={{ gap: '1.5rem' }}>
-          {/* Spending Breakdown Pie Chart */}
           <article className="card" aria-labelledby="spending-chart-title">
             <h3 id="spending-chart-title" style={{ marginBottom: '1rem' }}>
               Spending by Category
@@ -782,7 +913,6 @@ function Dashboard() {
             />
           </article>
 
-          {/* Trends Bar Chart */}
           <article className="card" aria-labelledby="trends-chart-title">
             <h3 id="trends-chart-title" style={{ marginBottom: '1rem' }}>
               Spending & Savings Trends
