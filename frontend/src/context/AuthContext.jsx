@@ -6,6 +6,7 @@ const AuthContext = createContext(null);
 // Helper functions for JWT token management
 const TOKEN_KEY = 'budget_car_token';
 const USER_KEY = 'budget_car_user';
+const WEEKLY_GOAL_KEY = "budgetcar_weekly_savings_goal"; 
 
 // Decode JWT payload
 function decodeToken(token) {
@@ -46,30 +47,26 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const initializeAuth = async () => {
       const token = localStorage.getItem(TOKEN_KEY);
-      const storedUser = localStorage.getItem(USER_KEY);
 
       if (token && !isTokenExpired(token)) {
         try {
-          // Fetch fresh user data from API
           const apiUser = await getCurrentUser(token);
           const userData = normalizeUser(apiUser);
           setIsAuthenticated(true);
           setUser(userData);
-          // Update stored user data
+
           localStorage.setItem(USER_KEY, JSON.stringify(userData));
         } catch (error) {
-          console.error('Failed to fetch user data:', error);
-          console.error('Error details:', error.message);
-          // Token might be invalid, clear auth state
           localStorage.removeItem(TOKEN_KEY);
           localStorage.removeItem(USER_KEY);
+          localStorage.removeItem(WEEKLY_GOAL_KEY); 
           setIsAuthenticated(false);
           setUser(null);
         }
       } else {
-        // No valid token, clear any stale data
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
+        localStorage.removeItem(WEEKLY_GOAL_KEY); 
       }
 
       setLoading(false);
@@ -80,7 +77,6 @@ export function AuthProvider({ children }) {
 
   const login = async ({ email, password }) => {
     try {
-      // Call real API
       const response = await loginUser({ email, password });
       const token = response.access_token;
 
@@ -88,30 +84,29 @@ export function AuthProvider({ children }) {
         throw new Error('No token returned from server');
       }
 
-      // Store token
       localStorage.setItem(TOKEN_KEY, token);
 
-      // Fetch user profile
       const apiUser = await getCurrentUser(token);
       const userData = normalizeUser(apiUser);
-      
-      // Store user data
+
       localStorage.setItem(USER_KEY, JSON.stringify(userData));
+
+      localStorage.removeItem(WEEKLY_GOAL_KEY); 
 
       setIsAuthenticated(true);
       setUser(userData);
     } catch (error) {
-      // Clear any stale data
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
-      throw error; // Re-throw so Login component can handle it
+      localStorage.removeItem(WEEKLY_GOAL_KEY); 
+      throw error;
     }
   };
 
   const logout = () => {
-    // Clear token and user from localStorage
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(WEEKLY_GOAL_KEY); 
 
     setIsAuthenticated(false);
     setUser(null);
@@ -119,7 +114,6 @@ export function AuthProvider({ children }) {
 
   const register = async ({ email, password, firstName, lastName }) => {
     try {
-      // Call real API - register endpoint (returns tokens directly)
       const response = await registerUser({
         email,
         password,
@@ -127,30 +121,28 @@ export function AuthProvider({ children }) {
         last_name: lastName,
       });
 
-      // Extract token from registration response
       const token = response.access_token;
 
       if (!token) {
         throw new Error('No token returned from server');
       }
 
-      // Store token
       localStorage.setItem(TOKEN_KEY, token);
 
-      // Fetch user profile using the token
       const apiUser = await getCurrentUser(token);
       const userData = normalizeUser(apiUser);
-      
-      // Store user data
+
       localStorage.setItem(USER_KEY, JSON.stringify(userData));
+
+      localStorage.removeItem(WEEKLY_GOAL_KEY); 
 
       setIsAuthenticated(true);
       setUser(userData);
     } catch (error) {
-      // Clear any stale data
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
-      throw error; // Re-throw so Register component can handle it
+      localStorage.removeItem(WEEKLY_GOAL_KEY); 
+      throw error;
     }
   };
 
