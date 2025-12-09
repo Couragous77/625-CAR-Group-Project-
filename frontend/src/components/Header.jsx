@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Logo from './Logo';
 import { useAuth } from '../context/AuthContext';
+import NotificationDropdown from './NotificationDropdown';
 
 function ProfileDropdown({ user, onLogout }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -69,8 +70,6 @@ export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notifications] = useState(3); // Mock notification count
   const notificationsRef = useRef(null);
 
   const handleLogout = () => {
@@ -83,17 +82,6 @@ export default function Header() {
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
-
-  // Close notifications when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
-        setNotificationsOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   // Check if link is active
   const isActiveLink = (path) => {
@@ -153,40 +141,7 @@ export default function Header() {
               </Link>
 
               {/* Notifications Icon */}
-              <div className="notification-dropdown" ref={notificationsRef}>
-                <button
-                  className="notification-button"
-                  aria-label="Notifications"
-                  onClick={() => setNotificationsOpen(!notificationsOpen)}
-                  aria-expanded={notificationsOpen}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                  </svg>
-                  {notifications > 0 && (
-                    <span className="notification-badge">{notifications}</span>
-                  )}
-                </button>
-
-                {notificationsOpen && (
-                  <div className="notification-panel">
-                    <div className="notification-header">
-                      <h3>Notifications</h3>
-                    </div>
-                    <div className="notification-content">
-                      <div className="coming-soon-message">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M12 6v6l4 2" />
-                        </svg>
-                        <h4>Coming Soon!</h4>
-                        <p>Notifications feature will be available soon. You'll receive alerts for budget goals, expense reminders, and more.</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <NotificationDropdown />
 
               <ProfileDropdown user={user} onLogout={handleLogout} />
             </>
@@ -202,40 +157,7 @@ export default function Header() {
         {isAuthenticated && (
           <div className="mobile-right-actions">
             {/* Notifications Icon */}
-            <div className="notification-dropdown" ref={notificationsRef}>
-              <button
-                className="notification-button"
-                aria-label="Notifications"
-                onClick={() => setNotificationsOpen(!notificationsOpen)}
-                aria-expanded={notificationsOpen}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                </svg>
-                {notifications > 0 && (
-                  <span className="notification-badge">{notifications}</span>
-                )}
-              </button>
-
-              {notificationsOpen && (
-                <div className="notification-panel">
-                  <div className="notification-header">
-                    <h3>Notifications</h3>
-                  </div>
-                  <div className="notification-content">
-                    <div className="coming-soon-message">
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M12 6v6l4 2" />
-                      </svg>
-                      <h4>Coming Soon!</h4>
-                      <p>Notifications feature will be available soon. You'll receive alerts for budget goals, expense reminders, and more.</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <NotificationDropdown />
 
             <ProfileDropdown user={user} onLogout={handleLogout} />
           </div>

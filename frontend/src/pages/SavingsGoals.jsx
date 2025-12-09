@@ -4,7 +4,7 @@ import {
   saveWeeklySavingsGoal,
   updateWeeklySavingsProgress,
 } from "../services/savingsGoalService";
-import SavingsProgressBar from "../components/SavingsProgressBar";
+import SavingsProgressBar from "../components/goals/SavingsProgressBar";
 
 export default function SavingsGoals() {
   const [goal, setGoal] = useState(getWeeklySavingsGoal());
